@@ -4,10 +4,10 @@ from groq import Groq
 # Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
 
-# Initialize the ai client
+# Initialize the ai client 
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Upgraded Educational System Prompt
+# Upgraded System Prompt
 SYSTEM_PROMPT = """
 You are an educational CyberPatriot mentor. Your goal is to help students learn Windows and Linux hardening by providing thorough, detailed breakdowns of security concepts.
 
@@ -18,7 +18,6 @@ Follow this response structure to help them learn effectively:
 
 Structure your response clearly with clean markdown bolding and bullet points so it remains easy to read.
 """
-
 
 # Initialize session state variables
 if "messages" not in st.session_state:
@@ -33,7 +32,6 @@ st.sidebar.markdown("---")
 # Quick Study Quiz Button
 st.sidebar.markdown("### 📝 Study Tools")
 if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
-    # Inject an automated instruction to the AI to start a quiz immediately
     quiz_trigger = "Give me a brand new, random CyberPatriot practice quiz challenge right now!"
     st.session_state.messages.append({"role": "user", "content": quiz_trigger})
     
@@ -42,11 +40,12 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         messages=st.session_state.messages,
         stream=False
     )
-    output_text = completion.choices.message.content
+    # SAFELY EXTRACT TEXT
+    output_text = completion.choices[0].message.content
     st.session_state.messages.append({"role": "assistant", "content": output_text})
     st.session_state.user_prompts.append("📝 Triggered Quick Quiz")
 
-# Visual list of what the user has asked during this session
+# Visual list of session history
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🕒 Session History Logs")
 if st.session_state.user_prompts:
@@ -63,7 +62,6 @@ st.markdown("---")
 # Render Chat History on Main Screen
 for msg in st.session_state.messages:
     if msg["role"] != "system":
-        # Check if it was an automated quiz button trigger to keep the UI clean
         if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
             st.chat_message(msg["role"]).write(msg["content"])
 
@@ -71,7 +69,7 @@ for msg in st.session_state.messages:
 if user_input := st.chat_input("Ask a question, or type 'Give me a Linux drill'..."):
     st.chat_message("user").write(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
-    st.session_state.user_prompts.append(user_input) # Log to sidebar history
+    st.session_state.user_prompts.append(user_input)
 
     # Generate response
     with st.chat_message("assistant"):
@@ -83,9 +81,9 @@ if user_input := st.chat_input("Ask a question, or type 'Give me a Linux drill'.
             stream=False
         )
         
-        output_text = completion.choices.message.content
+        # SAFELY EXTRACT TEXT
+        output_text = completion.choices[0].message.content
         response_placeholder.write(output_text)
         st.session_state.messages.append({"role": "assistant", "content": output_text})
         
-        # Rerun to refresh the sidebar logs view instantly
         st.rerun()
