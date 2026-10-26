@@ -1,13 +1,13 @@
 import streamlit as st
 from groq import Groq
 
-# Page Configuration & Layout
+# 1. Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
 
-# Initialize the ai client
+# 2. Initialize the ai client
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Educational System Prompts
+# 3. Dynamic Educational System Prompts
 GENERAL_SYSTEM_PROMPT = """
 You are an educational CyberPatriot mentor. Your goal is to help students learn Windows and Linux hardening by providing thorough, detailed breakdowns of security concepts.
 
@@ -26,7 +26,7 @@ DO NOT include any answers, explanations, solution concepts, or actionable steps
 When the user submits their answers, grade them accurately and provide the corrections.
 """
 
-# Initialize session state tracking for message history and multi-chat sessions
+# 4. Initialize session state tracking for message history and multi-chat sessions
 if "sessions" not in st.session_state:
     st.session_state.sessions = {}
 if "current_session_id" not in st.session_state:
@@ -44,7 +44,7 @@ if st.session_state.current_session_id not in st.session_state.sessions:
 # Fetch pointers for active session
 active_session = st.session_state.sessions[st.session_state.current_session_id]
 
-# SIDEBAR: Dashboard Configuration
+# 5. SIDEBAR: Dashboard Configuration
 st.sidebar.title("🛡️ CP-OPS Dashboard")
 st.sidebar.markdown("---")
 
@@ -59,9 +59,9 @@ system_choice = st.sidebar.selectbox(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🛠️ Study Tools")
 
-# TOOL 1: Generate Security Checklist
+# TOOL 1: Generate Security Checklist (Stripped of Conversational Filler)
 if st.sidebar.button("📋 Generate Security Checklist", use_container_width=True):
-    checklist_trigger = f"Act as an audit advisor. Generate a high-yield configuration security hardening checklist focusing on critical points-earning vulnerabilities for {system_choice}."
+    checklist_trigger = f"Act as an automated security scanner. Generate a highly technical, point-by-point security hardening checklist for {system_choice}. Do not write a conversational introduction or conclusion. Format it completely as checkboxes (- [ ]) grouped by categories like User Management, Software/Services, Firewalls, and Audit Policies."
     active_session["messages"].append({"role": "user", "content": checklist_trigger})
     active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
     
@@ -90,9 +90,9 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
-# TOOL 3: Competition Round Reviewer
+# TOOL 3: Competition Round Reviewer (Targeted to Training Rounds & Round 1)
 if st.sidebar.button("📊 Review Last Competition Round", use_container_width=True):
-    review_trigger = f"Analyze historical CyberPatriot competition trends for {system_choice}. Outline what typical tasks earn points, what pitfalls cause penalties, and step-by-step mitigation strategies to pass verification tests."
+    review_trigger = f"Provide a comprehensive technical audit reviewing typical core scoring components found specifically in the current season's CyberPatriot Training Rounds and Round 1 for {system_choice}. Breakdown specific point-earning actions (e.g. initial media file removal, default password updates, standard unauthorized user auditing, disabling forbidden features like guest logs/Telnet) and detail the exact remediation verification commands."
     active_session["messages"].append({"role": "user", "content": review_trigger})
     active_session["logs"].append("📊 Requested Round Review")
     
@@ -128,7 +128,7 @@ for sid in list(st.session_state.sessions.keys()):
         st.session_state.current_session_id = sid
         st.rerun()
 
-# MAIN PANEL: Primary App View
+# 6. MAIN PANEL: Primary App View
 st.title("🛡️ CYBERPATRIOT OPS MENTOR")
 st.caption("24/7 Practice assistant. Select an environment scope, launch study modules, or attach diagnostics files below.")
 st.markdown(f"**Active Workspace Context:** `{system_choice}` | **Session:** `{st.session_state.current_session_id}`")
@@ -145,7 +145,7 @@ uploaded_image = st.file_uploader("🖼️ Upload system error screenshots or po
 if uploaded_image is not None:
     st.success(f"Successfully processed image file: '{uploaded_image.name}'! Reference this upload in the prompt window below to run forensics validations.")
 
-# Handle Live Dialogue Input Loops
+# 7. Handle Live Dialogue Input Loops
 if user_input := st.chat_input("Ask a tracking question, check configurations, or paste script strings..."):
     contextualized_prompt = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
     
@@ -168,4 +168,3 @@ if user_input := st.chat_input("Ask a tracking question, check configurations, o
         active_session["messages"].append({"role": "assistant", "content": output_text})
         
         st.rerun()
-
