@@ -93,7 +93,7 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
-# TOOL 3: Reveal Quiz Answers Shortcut (NEW QOL BUTTON)
+# TOOL 3: Reveal Quiz Answers Shortcut
 if st.sidebar.button("🔓 Reveal Quiz Answers", use_container_width=True):
     reveal_trigger = "I am stuck on the quiz challenge. Provide the correct answers along with the core technical solutions and commands immediately."
     active_session["messages"].append({"role": "user", "content": reveal_trigger})
@@ -106,9 +106,11 @@ if st.sidebar.button("🔓 Reveal Quiz Answers", use_container_width=True):
             messages=active_session["messages"],
             stream=False
         )
-        output_text = completion.choices.message.content
+        # FIXED: Added [0] here to prevent the AttributeError
+        output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
+
 
 # TOOL 4: Competition Round Reviewer
 if st.sidebar.button("📊 Review Last Competition Round", use_container_width=True):
