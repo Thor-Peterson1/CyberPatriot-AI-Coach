@@ -71,12 +71,13 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
             messages=active_session["messages"],
             stream=False
         )
-        active_session["messages"].append({"role": "assistant", "content": completion.choices.message.content})
+        # ADDED CHOICE INDEXING TO PREVENT ERROR
+        output_text = completion.choices[0].message.content
+        active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
-# TOOL 2: Generate Short Quiz 
+# TOOL 2: Generate Short Quiz
 if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
-    # Temporarily override system instruction context for clean assessment layout
     quiz_payload = [{"role": "system", "content": QUIZ_SYSTEM_PROMPT}, {"role": "user", "content": f"Create a short 3-MCQ and 1-Free Response quiz tracking core security metrics on {system_choice}."}]
     active_session["logs"].append("📝 Generated Quick Quiz")
     
@@ -86,7 +87,9 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
             messages=quiz_payload,
             stream=False
         )
-        active_session["messages"].append({"role": "assistant", "content": completion.choices.message.content})
+        # ADDED CHOICE INDEXING TO PREVENT ERROR
+        output_text = completion.choices[0].message.content
+        active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
 # TOOL 3: Competition Round Reviewer
@@ -101,7 +104,9 @@ if st.sidebar.button("📊 Review Last Competition Round", use_container_width=T
             messages=active_session["messages"],
             stream=False
         )
-        active_session["messages"].append({"role": "assistant", "content": completion.choices.message.content})
+        # ADDED CHOICE INDEXING TO PREVENT ERROR
+        output_text = completion.choices[0].message.content
+        active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
 st.sidebar.markdown("---")
@@ -121,7 +126,6 @@ if st.sidebar.button("➕ Start New Chat Session", use_container_width=True):
 # Interactive Historical Navigation List
 st.sidebar.markdown("#### 🕒 Historic Session Logs")
 for sid in list(st.session_state.sessions.keys()):
-    # Highlight the currently active tracking view
     button_label = f"📁 {sid} (Active)" if sid == st.session_state.current_session_id else f"📄 {sid}"
     if st.sidebar.button(button_label, key=f"nav_{sid}", use_container_width=True):
         st.session_state.current_session_id = sid
@@ -136,7 +140,8 @@ st.markdown("---")
 # Render Past Chat Messages
 for msg in active_session["messages"]:
     if msg["role"] != "system":
-        st.chat_message(msg["role"]).write(msg["content"])
+        if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
+            st.chat_message(msg["role"]).write(msg["content"])
 
 # Image Artifact Upload Integration
 uploaded_image = st.file_uploader("🖼️ Upload system error screenshots or policy diagnostics pictures for analysis:", type=["png", "jpg", "jpeg"])
@@ -145,7 +150,6 @@ if uploaded_image is not None:
 
 # Handle Live Dialogue Input Loops
 if user_input := st.chat_input("Ask a tracking question, check configurations, or paste script strings..."):
-    # Append the environment type to the prompt context dynamically behind the scenes
     contextualized_prompt = f"[{system_choice} Context] {user_input}"
     
     st.chat_message("user").write(user_input)
@@ -162,7 +166,9 @@ if user_input := st.chat_input("Ask a tracking question, check configurations, o
                 stream=False
             )
         
-        output_text = completion.choices.message.content
+        # SAFELY EXTRACT TEXT (FIXED HERE TOO)
+        output_text = completion.choices[0].message.content
         response_placeholder.write(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
+        
         st.rerun()
