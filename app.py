@@ -7,7 +7,7 @@ st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layo
 # Initialize the ai client
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Dynamic Educational System Prompts
+# Educational System Prompts
 GENERAL_SYSTEM_PROMPT = """
 You are an educational CyberPatriot mentor. Your goal is to help students learn Windows and Linux hardening by providing thorough, detailed breakdowns of security concepts.
 
@@ -23,7 +23,7 @@ QUIZ_SYSTEM_PROMPT = """
 You are an objective CyberPatriot testing engine. 
 Generate exactly 3 multiple choice questions and 1 free response question based on the selected operating system scope.
 DO NOT include any answers, explanations, solution concepts, or actionable steps in your initial response. Only provide the questions and choice options (A, B, C, D).
-Wait for the student to attempt the quiz before providing feedback.
+When the user submits their answers, grade them accurately and provide the corrections.
 """
 
 # Initialize session state tracking for message history and multi-chat sessions
@@ -67,11 +67,10 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
     
     with st.spinner("Compiling security checklist..."):
         completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="qwen/qwen3.8-27b",
             messages=active_session["messages"],
             stream=False
         )
-        # ADDED CHOICE INDEXING TO PREVENT ERROR
         output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
@@ -83,11 +82,10 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
     
     with st.spinner("Generating clean quiz..."):
         completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="qwen/qwen3.8-27b",
             messages=quiz_payload,
             stream=False
         )
-        # ADDED CHOICE INDEXING TO PREVENT ERROR
         output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
@@ -100,11 +98,10 @@ if st.sidebar.button("📊 Review Last Competition Round", use_container_width=T
     
     with st.spinner("Analyzing historical competitive metrics..."):
         completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="qwen/qwen3.8-27b",
             messages=active_session["messages"],
             stream=False
         )
-        # ADDED CHOICE INDEXING TO PREVENT ERROR
         output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
@@ -150,7 +147,7 @@ if uploaded_image is not None:
 
 # Handle Live Dialogue Input Loops
 if user_input := st.chat_input("Ask a tracking question, check configurations, or paste script strings..."):
-    contextualized_prompt = f"[{system_choice} Context] {user_input}"
+    contextualized_prompt = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
     
     st.chat_message("user").write(user_input)
     active_session["messages"].append({"role": "user", "content": contextualized_prompt})
@@ -161,14 +158,14 @@ if user_input := st.chat_input("Ask a tracking question, check configurations, o
         
         with st.spinner("Calculating educational layout..."):
             completion = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
+                model="qwen/qwen3.8-27b",
                 messages=active_session["messages"],
                 stream=False
             )
         
-        # SAFELY EXTRACT TEXT (FIXED HERE TOO)
         output_text = completion.choices[0].message.content
         response_placeholder.write(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
         
         st.rerun()
+
