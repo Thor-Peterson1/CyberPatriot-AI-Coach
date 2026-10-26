@@ -89,7 +89,7 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
             messages=quiz_payload,
             stream=False
         )
-        output_text = completion.choices.message.content
+        output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
