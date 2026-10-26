@@ -67,13 +67,13 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
     active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
     
     with st.spinner("Compiling security checklist..."):
-        time.sleep(0.5) # Prevents hitting rapid free tier rate limits
+        time.sleep(0.5)
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=active_session["messages"],
             stream=False
         )
-        output_text = completion.choices[0].message.content
+        output_text = completion.choices.message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
@@ -89,11 +89,28 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
             messages=quiz_payload,
             stream=False
         )
-        output_text = completion.choices[0].message.content
+        output_text = completion.choices.message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
-# TOOL 3: Competition Round Reviewer
+# TOOL 3: Reveal Quiz Answers Shortcut (NEW QOL BUTTON)
+if st.sidebar.button("🔓 Reveal Quiz Answers", use_container_width=True):
+    reveal_trigger = "I am stuck on the quiz challenge. Provide the correct answers along with the core technical solutions and commands immediately."
+    active_session["messages"].append({"role": "user", "content": reveal_trigger})
+    active_session["logs"].append("🔓 Revealed Quiz Answers")
+    
+    with st.spinner("Retrieving quiz answer key..."):
+        time.sleep(0.5)
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=active_session["messages"],
+            stream=False
+        )
+        output_text = completion.choices.message.content
+        active_session["messages"].append({"role": "assistant", "content": output_text})
+    st.rerun()
+
+# TOOL 4: Competition Round Reviewer
 if st.sidebar.button("📊 Review Last Competition Round", use_container_width=True):
     review_trigger = f"Provide a comprehensive technical audit reviewing typical core scoring components found specifically in CyberPatriot Training Rounds and Round 1 for {system_choice}. Breakdown specific point-earning actions (e.g. initial media file removal, default password updates, standard unauthorized user auditing, disabling forbidden features like guest logs/Telnet) and detail the exact remediation verification commands."
     active_session["messages"].append({"role": "user", "content": review_trigger})
@@ -106,7 +123,7 @@ if st.sidebar.button("📊 Review Last Competition Round", use_container_width=T
             messages=active_session["messages"],
             stream=False
         )
-        output_text = completion.choices[0].message.content
+        output_text = completion.choices.message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
@@ -122,6 +139,14 @@ if st.sidebar.button("➕ Start New Chat Session", use_container_width=True):
         "logs": []
     }
     st.session_state.current_session_id = new_id
+    st.rerun()
+
+# Clear Logs Tool (NEW QOL BUTTON)
+if st.sidebar.button("🗑️ Clear Current Logs", use_container_width=True):
+    st.session_state.sessions[st.session_state.current_session_id] = {
+        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
+        "logs": []
+    }
     st.rerun()
 
 # Interactive Historical Navigation List
@@ -144,13 +169,36 @@ for msg in active_session["messages"]:
         if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
             st.chat_message(msg["role"]).write(msg["content"])
 
+# Interactive Quick Prompt Starters (NEW QOL LAYOUT)
+if len(active_session["messages"]) <= 1:
+    st.markdown("#### 💡 Quick Prompt Starters")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔑 Explain Account Lockout Policies", use_container_width=True):
+            st.session_state["shortcut_input"] = "Explain how to audit and configure Account Lockout Policies to prevent brute-force attacks."
+    with col2:
+        if st.button("🚫 Show Common Forbidden Software", use_container_width=True):
+            st.session_state["shortcut_input"] = "List the most common forbidden software and media file extensions that cause penalties in competition images."
+
 # Image Artifact Upload Integration
 uploaded_image = st.file_uploader("🖼️ Upload system error screenshots or policy diagnostics pictures for analysis:", type=["png", "jpg", "jpeg"])
 if uploaded_image is not None:
     st.success(f"Successfully processed image file: '{uploaded_image.name}'! Reference this upload in the prompt window below to run forensics validations.")
 
 # 7. Handle Live Dialogue Input Loops
-if user_input := st.chat_input("Ask a tracking question, check configurations, or paste script strings..."):
+# Safely pull a value if clicked from the shortcut boxes
+default_input_val = st.session_state.pop("shortcut_input") if "shortcut_input" in st.session_state else ""
+
+# Handle user input via chat box entry
+user_entry = st.chat_input("Ask a tracking question, check configurations, or paste script strings...", key="chat_field")
+
+# Workaround to handle both typing and button triggers cleanly
+if default_input_val:
+    user_input = default_input_val
+else:
+    user_input = user_entry
+
+if user_input:
     contextualized_prompt = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
     
     st.chat_message("user").write(user_input)
