@@ -45,6 +45,19 @@ if st.session_state.current_session_id not in st.session_state.sessions:
 # Fetch pointers for active session
 active_session = st.session_state.sessions[st.session_state.current_session_id]
 
+if "session_counter" not in st.session_state:
+    st.session_state.session_counter = 1
+# ADD THIS LINE RIGHT HERE:
+if "total_words_processed" not in st.session_state:
+    st.session_state.total_words_processed = 0
+
+
+# Helper function to track data volume sizes
+def track_usage(text_input):
+    words = len(str(text_input).split())
+    st.session_state.total_words_processed += words
+
+
 # 5. SIDEBAR: Dashboard Configuration
 st.sidebar.title("🛡️ CP-OPS Dashboard")
 st.sidebar.markdown("---")
@@ -65,6 +78,7 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
     checklist_trigger = f"Act as an automated security scanner. Generate a highly technical, point-by-point security hardening checklist for {system_choice}. Do not write a conversational introduction or conclusion. Format it completely as checkboxes (- [ ]) grouped by categories like User Management, Software/Services, Firewalls, and Audit Policies."
     active_session["messages"].append({"role": "user", "content": checklist_trigger})
     active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
+    track_usage(checklist_trigger)
     
     with st.spinner("Compiling security checklist..."):
         time.sleep(0.5)
@@ -74,13 +88,16 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
             stream=False
         )
         output_text = completion.choices[0].message.content
+        track_usage(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
+
 
 # TOOL 2: Generate Short Quiz
 if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
     quiz_payload = [{"role": "system", "content": QUIZ_SYSTEM_PROMPT}, {"role": "user", "content": f"Create a short 3-MCQ and 1-Free Response quiz tracking core security metrics on {system_choice}."}]
     active_session["logs"].append("📝 Generated Quick Quiz")
+    track_usage(checklist_trigger)
     
     with st.spinner("Generating clean quiz..."):
         time.sleep(0.5)
@@ -90,6 +107,7 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
             stream=False
         )
         output_text = completion.choices[0].message.content
+        track_usage(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
@@ -155,6 +173,13 @@ if st.sidebar.button("🗑️ Clear Current Logs", use_container_width=True):
 # TOOL 5: Export Session to Text File (NEW QOL FEATURE)
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 💾 Export Data")
+
+# NEW VISUAL MONITOR COMPONENT
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Live Analytics Monitor")
+st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
+st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
+
 
 # Compile all conversation history into a single string
 full_transcript = ""
@@ -230,6 +255,7 @@ if user_input:
     st.chat_message("user").write(user_input)
     active_session["messages"].append({"role": "user", "content": contextualized_prompt})
     active_session["logs"].append(user_input)
+    track_usage(contextualized_prompt) # <--- ADD THIS
 
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
@@ -242,7 +268,9 @@ if user_input:
             )
         
         output_text = completion.choices[0].message.content
+        track_usage(output_text) # <--- ADD THIS
         response_placeholder.write(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
         
         st.rerun()
+
