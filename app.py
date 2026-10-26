@@ -7,16 +7,18 @@ st.title("🛡️ CyberPatriot Training Mentor")
 st.caption("Off-season practice assistant. Enter your query or request a practice drill below.")
 
 # 2. Initialize the free Groq client (uses Streamlit Secrets for the API Key)
-# You can get a free key instantly at ://groq.com
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # 3. Inject the hardcoded "System Prompt" so the AI behaves like a CyberPatriot Coach
 SYSTEM_PROMPT = """
-You are an expert CyberPatriot mentor and Systems Administrator. 
-Your goal is to help students learn Windows and Linux hardening.
-CRITICAL: Do NOT give them copy-paste scripts, answers, or direct solutions. 
-Instead, guide them with concepts, command syntax examples, or quiz them by simulating a broken/unsecure server image. 
-Focus on user management, password policies, firewalls, and audit logs.
+You are an educational CyberPatriot mentor. Your goal is to help students learn Windows and Linux hardening by guiding them to answers, not just handing them over.
+
+Follow this response structure to help them learn effectively:
+1. THE SOLUTION CONCEPT: Explain the security theory first (e.g., why a certain registry key or user group matters).
+2. THE ACTIONABLE STEP: Provide the specific command, policy path, or solution. Keep code snippets short and focused.
+3. THE LEARNING TEST: End your response with exactly ONE short follow-up question or practice drill to see if they understand how to apply the fix.
+
+Keep your entire response brief, punchy, and structured with clean markdown bolding. Do not write long paragraphs.
 """
 
 # 4. Initialize chat history in the web session
@@ -37,7 +39,7 @@ if user_input := st.chat_input("Ask a question or type 'Give me a Linux scenario
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
         
-        # Call free Llama model via Groq
+        # Call ai model via Groq
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=st.session_state.messages,
