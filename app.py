@@ -28,6 +28,12 @@ When the user submits their answers, grade them accurately and provide the corre
 """
 
 # 4. Initialize session state tracking for message history and multi-chat sessions
+
+# Helper function to track data volume sizes
+def track_usage(text_input):
+    words = len(str(text_input).split())
+    st.session_state.total_words_processed += words
+
 if "sessions" not in st.session_state:
     st.session_state.sessions = {}
 if "current_session_id" not in st.session_state:
@@ -47,15 +53,9 @@ active_session = st.session_state.sessions[st.session_state.current_session_id]
 
 if "session_counter" not in st.session_state:
     st.session_state.session_counter = 1
-# ADD THIS LINE RIGHT HERE:
+
 if "total_words_processed" not in st.session_state:
     st.session_state.total_words_processed = 0
-
-
-# Helper function to track data volume sizes
-def track_usage(text_input):
-    words = len(str(text_input).split())
-    st.session_state.total_words_processed += words
 
 
 # 5. SIDEBAR: Dashboard Configuration
