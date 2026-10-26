@@ -73,7 +73,7 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
             messages=active_session["messages"],
             stream=False
         )
-        output_text = completion.choices.message.content
+        output_text = completion.choices[0].message.content
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
