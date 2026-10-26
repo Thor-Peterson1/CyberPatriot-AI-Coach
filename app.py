@@ -196,6 +196,18 @@ st.caption("24/7 Practice assistant. Select an environment scope, launch study m
 st.markdown(f"**Active Workspace Context:** `{system_choice}` | **Session:** `{st.session_state.current_session_id}`")
 st.markdown("---")
 
+# Dynamic Visual Badge Indicator
+if "Windows" in system_choice:
+    st.markdown("🌐 **Current Subsystem Scope Active:** `:blue[[ WINDOWS AD/SERVER ENVIROMENT ]]` — Hardening policies enforced.")
+elif "Linux" in system_choice:
+    st.markdown("🐧 **Current Subsystem Scope Active:** `:orange[[ LINUX UBUNTU DEBIAN CORE ]]` — Audit logs and service daemons prioritized.")
+elif "Cisco" in system_choice:
+    st.markdown("📡 **Current Subsystem Scope Active:** `:green[[ CISCO PACKET TRACER SWITCHING ]]` — ACLs and IOS configurations active.")
+else:
+    st.markdown("⚙️ **Current Subsystem Scope Active:** `[ GENERAL SECURITY METRICS ]` — Mixed-environment architecture overview.")
+st.markdown("---")
+
+
 for msg in active_session["messages"]:
     if msg["role"] != "system":
         if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
