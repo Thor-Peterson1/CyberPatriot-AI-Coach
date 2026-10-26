@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#00FF66"          # Cyber Green for buttons, active tabs, and accents
+backgroundColor = "#0D1117"       # Deep Dark Slate for the main background
+secondaryBackgroundColor = "#161B22" # Dark Gray for sidebars and input text fields
+textColor = "#F0F6FC"             # Bright Off-White for clean readability
+font = "monospace"                # Monospace font to give it a code/terminal vibe
