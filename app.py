@@ -1,5 +1,6 @@
 import streamlit as st
 from groq import Groq
+import time
 
 # 1. Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
@@ -66,8 +67,9 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
     active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
     
     with st.spinner("Compiling security checklist..."):
+        time.sleep(0.5) # Prevents hitting rapid free tier rate limits
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b",
+            model="openai/gpt-oss-20b",
             messages=active_session["messages"],
             stream=False
         )
@@ -81,8 +83,9 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
     active_session["logs"].append("📝 Generated Quick Quiz")
     
     with st.spinner("Generating clean quiz..."):
+        time.sleep(0.5)
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b",
+            model="openai/gpt-oss-20b",
             messages=quiz_payload,
             stream=False
         )
@@ -97,8 +100,9 @@ if st.sidebar.button("📊 Review Last Competition Round", use_container_width=T
     active_session["logs"].append("📊 Requested Round Review")
     
     with st.spinner("Analyzing competitive metrics..."):
+        time.sleep(0.5)
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b",
+            model="openai/gpt-oss-20b",
             messages=active_session["messages"],
             stream=False
         )
@@ -158,7 +162,7 @@ if user_input := st.chat_input("Ask a tracking question, check configurations, o
         
         with st.spinner("Calculating educational layout..."):
             completion = client.chat.completions.create(
-                model="meta-llama/llama-3.3-70b",
+                model="openai/gpt-oss-20b",
                 messages=active_session["messages"],
                 stream=False
             )
