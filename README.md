@@ -2,7 +2,7 @@
 An interactive, full-stack web application designed to help student competitors practice system hardening, security auditing, and forensic hunting outside of official competition rounds.
 
 ## Live Demo
-🔗 [Click here to use the app live on Streamlit!]([https://streamlit.app](https://cyberpatriot-ai-coach-hwgjzy84chosdl8ykadbxc.streamlit.app/#cyberpatriot-ops-mentor))
+🔗 [Click here to use the app live on Streamlit!](https://cyberpatriot-ai-coach-hwgjzy84chosdl8ykadbxc.streamlit.app/#cyberpatriot-ops-mentor)
 
 ## Key Features
 * **Dynamic Training Scenarios:** Simulates misconfigured Windows/Linux server states to test competitor logic.
