@@ -59,7 +59,7 @@ system_choice = st.sidebar.selectbox(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🛠️ Study Tools")
 
-# TOOL 1: Generate Security Checklist (Stripped of Conversational Filler)
+# TOOL 1: Generate Security Checklist
 if st.sidebar.button("📋 Generate Security Checklist", use_container_width=True):
     checklist_trigger = f"Act as an automated security scanner. Generate a highly technical, point-by-point security hardening checklist for {system_choice}. Do not write a conversational introduction or conclusion. Format it completely as checkboxes (- [ ]) grouped by categories like User Management, Software/Services, Firewalls, and Audit Policies."
     active_session["messages"].append({"role": "user", "content": checklist_trigger})
@@ -67,7 +67,7 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
     
     with st.spinner("Compiling security checklist..."):
         completion = client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
+            model="meta-llama/llama-3.3-70b",
             messages=active_session["messages"],
             stream=False
         )
@@ -82,7 +82,7 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
     
     with st.spinner("Generating clean quiz..."):
         completion = client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
+            model="meta-llama/llama-3.3-70b",
             messages=quiz_payload,
             stream=False
         )
@@ -90,15 +90,15 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         active_session["messages"].append({"role": "assistant", "content": output_text})
     st.rerun()
 
-# TOOL 3: Competition Round Reviewer (Targeted to Training Rounds & Round 1)
+# TOOL 3: Competition Round Reviewer
 if st.sidebar.button("📊 Review Last Competition Round", use_container_width=True):
-    review_trigger = f"Provide a comprehensive technical audit reviewing typical core scoring components found specifically in the current season's CyberPatriot Training Rounds and Round 1 for {system_choice}. Breakdown specific point-earning actions (e.g. initial media file removal, default password updates, standard unauthorized user auditing, disabling forbidden features like guest logs/Telnet) and detail the exact remediation verification commands."
+    review_trigger = f"Provide a comprehensive technical audit reviewing typical core scoring components found specifically in CyberPatriot Training Rounds and Round 1 for {system_choice}. Breakdown specific point-earning actions (e.g. initial media file removal, default password updates, standard unauthorized user auditing, disabling forbidden features like guest logs/Telnet) and detail the exact remediation verification commands."
     active_session["messages"].append({"role": "user", "content": review_trigger})
     active_session["logs"].append("📊 Requested Round Review")
     
-    with st.spinner("Analyzing historical competitive metrics..."):
+    with st.spinner("Analyzing competitive metrics..."):
         completion = client.chat.completions.create(
-            model="qwen/qwen3.8-27b",
+            model="meta-llama/llama-3.3-70b",
             messages=active_session["messages"],
             stream=False
         )
@@ -158,7 +158,7 @@ if user_input := st.chat_input("Ask a tracking question, check configurations, o
         
         with st.spinner("Calculating educational layout..."):
             completion = client.chat.completions.create(
-                model="qwen/qwen3.8-27b",
+                model="meta-llama/llama-3.3-70b",
                 messages=active_session["messages"],
                 stream=False
             )
