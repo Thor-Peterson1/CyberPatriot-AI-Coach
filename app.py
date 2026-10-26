@@ -196,18 +196,15 @@ st.caption("24/7 Practice assistant. Select an environment scope, launch study m
 st.markdown(f"**Active Workspace Context:** `{system_choice}` | **Session:** `{st.session_state.current_session_id}`")
 st.markdown("---")
 
-# True Background Banner Containers
+# True Background Banner Containers 
 if "Windows" in system_choice:
-    with st.status("🌐 SYSTEM WORKING CONTEXT: WINDOWS PLATFORM LAB", expanded=True, state="running"):
-        st.write("Active Direct Access Hardening Policies Enforced — Auditing user accounts, registry baselines, and local groups.")
+    st.info("🌐 **SYSTEM WORKING CONTEXT: WINDOWS PLATFORM LAB**\n\nActive Direct Access Hardening Policies Enforced — Auditing user accounts, registry baselines, and local groups.")
 elif "Linux" in system_choice:
-    with st.status("🐧 SYSTEM WORKING CONTEXT: LINUX ENVIRONMENT CORE", expanded=True, state="warning"):
-        st.write("Active Systemd and Security Daemon Monitoring Active — Prioritizing service lockdowns, login profiles, and file configurations.")
+    st.warning("🐧 **SYSTEM WORKING CONTEXT: LINUX ENVIRONMENT CORE**\n\nActive Systemd and Security Daemon Monitoring Active — Prioritizing service lockdowns, login profiles, and file configurations.")
 elif "Cisco" in system_choice:
-    with st.status("📡 SYSTEM WORKING CONTEXT: CISCO IOS APPLIANCE LAB", expanded=True, state="success"):
-        st.write("Active Infrastructure Access Control baselines active — Tracking network switches, vlan permissions, and router logs.")
+    st.success("📡 **SYSTEM WORKING CONTEXT: CISCO IOS APPLIANCE LAB**\n\nActive Infrastructure Access Control baselines active — Tracking network switches, vlan permissions, and router logs.")
 else:
-    st.info("⚙️ GENERAL SECURITY METRICS — Mixed-environment architecture overview active.")
+    st.info("⚙️ **GENERAL SECURITY METRICS** — Mixed-environment architecture overview active.")
 st.markdown("---")
 
 
