@@ -95,7 +95,8 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
 
 # TOOL 3: Reveal Quiz Answers Shortcut
 if st.sidebar.button("🔓 Reveal Quiz Answers", use_container_width=True):
-    reveal_trigger = "I am stuck on the quiz challenge. Provide the correct answers along with the core technical solutions and commands immediately."
+    reveal_trigger = "Explain the step-by-step corrections for this exercise and break down the solution mechanics and command examples for each question to help me study."
+
     active_session["messages"].append({"role": "user", "content": reveal_trigger})
     active_session["logs"].append("🔓 Revealed Quiz Answers")
     
