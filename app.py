@@ -39,7 +39,7 @@ if user_input := st.chat_input("Ask a question or type 'Give me a Linux scenario
         
         # Call free Llama model via Groq
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="openai/gpt-oss-20b",
             messages=st.session_state.messages,
             stream=False
         )
