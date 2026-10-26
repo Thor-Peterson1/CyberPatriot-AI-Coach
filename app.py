@@ -152,6 +152,29 @@ if st.sidebar.button("🗑️ Clear Current Logs", use_container_width=True):
     }
     st.rerun()
 
+# TOOL 5: Export Session to Text File (NEW QOL FEATURE)
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 💾 Export Data")
+
+# Compile all conversation history into a single string
+full_transcript = ""
+for msg in active_session["messages"]:
+    if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
+        speaker = "STUDENT" if msg["role"] == "user" else "MENTOR"
+        full_transcript += f"[{speaker}]:\n{msg['content']}\n\n{'='*40}\n\n"
+
+if full_transcript:
+    st.sidebar.download_button(
+        label="📥 Download Study Notes (.txt)",
+        data=full_transcript,
+        file_name=f"cyberpatriot_study_notes_{st.session_state.current_session_id.lower().replace(' ', '_')}.txt",
+        mime="text/plain",
+        use_container_width=True
+    )
+else:
+    st.sidebar.caption("Chat with the mentor or generate a checklist to unlock download export options.")
+
+
 # Interactive Historical Navigation List
 st.sidebar.markdown("#### 🕒 Historic Session Logs")
 for sid in list(st.session_state.sessions.keys()):
