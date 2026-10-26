@@ -168,8 +168,14 @@ for sid in list(st.session_state.sessions.keys()):
         st.session_state.current_session_id = sid
         st.rerun()
 
-# TOOL 5: Export Transcript Feature
+# LIVE ANALYTICS COMPONENT
 st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Live Analytics Monitor")
+st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
+st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
+
+
+# TOOL 5: Export Transcript Feature
 full_transcript = ""
 for msg in active_session["messages"]:
     if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
@@ -184,13 +190,7 @@ if full_transcript:
         mime="text/plain",
         use_container_width=True
     )
-
-# LIVE ANALYTICS COMPONENT
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 📊 Live Analytics Monitor")
-st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
-st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
-
+    
 # 6. MAIN PANEL UI
 st.title("🛡️ CYBERPATRIOT OPS MENTOR")
 st.caption("24/7 Practice assistant. Select an environment scope, launch study modules, or attach diagnostics files below.")
