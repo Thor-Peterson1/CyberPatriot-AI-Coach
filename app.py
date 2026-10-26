@@ -161,20 +161,15 @@ if st.sidebar.button("🗑️ Clear Current Logs", use_container_width=True):
     }
     st.rerun()
 
-st.sidebar.markdown("#### 🕒 Historic Session Logs")
+st.sidebar.markdown("#### 🕒 Session Logs History")
 for sid in list(st.session_state.sessions.keys()):
     button_label = f"📁 {sid} (Active)" if sid == st.session_state.current_session_id else f"📄 {sid}"
     if st.sidebar.button(button_label, key=f"nav_{sid}", use_container_width=True):
         st.session_state.current_session_id = sid
         st.rerun()
 
-# LIVE ANALYTICS COMPONENT
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 📊 Live Analytics Monitor")
-st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
-st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
-
 # TOOL 5: Export Transcript Feature
+st.sidebar.markdown("---")
 full_transcript = ""
 for msg in active_session["messages"]:
     if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
@@ -189,6 +184,12 @@ if full_transcript:
         mime="text/plain",
         use_container_width=True
     )
+
+# LIVE ANALYTICS COMPONENT
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Live Analytics Monitor")
+st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
+st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
 
 # 6. MAIN PANEL UI
 st.title("🛡️ CYBERPATRIOT OPS MENTOR")
