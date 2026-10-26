@@ -168,14 +168,10 @@ for sid in list(st.session_state.sessions.keys()):
         st.session_state.current_session_id = sid
         st.rerun()
 
-# LIVE ANALYTICS COMPONENT
+# TOOL 5: Export Transcript Feature (MOVED ABOVE ANALYTICS)
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 📊 Live Analytics Monitor")
-st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
-st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
+st.sidebar.markdown("### 💾 Export Data")
 
-
-# TOOL 5: Export Transcript Feature
 full_transcript = ""
 for msg in active_session["messages"]:
     if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
@@ -190,6 +186,15 @@ if full_transcript:
         mime="text/plain",
         use_container_width=True
     )
+else:
+    st.sidebar.caption("Chat with the mentor or generate a checklist to unlock download export options.")
+
+# LIVE ANALYTICS COMPONENT (MOVED TO ABSOLUTE BOTTOM)
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📊 Live Analytics Monitor")
+st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
+st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
+
     
 # 6. MAIN PANEL UI
 st.title("🛡️ CYBERPATRIOT OPS MENTOR")
