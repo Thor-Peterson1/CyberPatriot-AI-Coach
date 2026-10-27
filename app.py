@@ -234,29 +234,66 @@ uploaded_image = st.file_uploader("🖼️ Upload system error screenshots or po
 if uploaded_image is not None:
     st.success(f"Successfully processed image file: '{uploaded_image.name}'!")
 
-# 7. Live Input Loop
+# 7. Live Input Loop & Multimodal Handler
 default_input_val = st.session_state.pop("shortcut_input") if "shortcut_input" in st.session_state else ""
 user_entry = st.chat_input("Ask a tracking question, check configurations, or paste script strings...", key="chat_field")
 
 user_input = default_input_val if default_input_val else user_entry
 
+# Capture uploaded image from Streamlit widget above
+uploaded_image = st.session_state.get("uploaded_image_widget") # or use your existing variable name
+
 if user_input:
-    contextualized_prompt = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
+    # Base configuration for the message
+    contex_text = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
+    
+    # Check if user uploaded an image alongside their prompt
+    if uploaded_image is not None:
+        # Read and encode the image to base64
+        bytes_data = uploaded_image.getvalue()
+        base64_encoded_image = base64.b64encode(bytes_data).decode("utf-8")
+        
+        # Construct multimodal message content structure for Groq Vision
+        message_content = [
+            {"type": "text", "text": contex_text},
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/{uploaded_image.type.split('/')[-1]};base64,{base64_encoded_image}"
+                }
+            }
+        ]
+        active_session["logs"].append(f"🖼️ Analyzed image: {uploaded_image.name}")
+    else:
+        message_content = contex_text
+        active_session["logs"].append(user_input)
+
     st.chat_message("user").write(user_input)
-    active_session["messages"].append({"role": "user", "content": contextualized_prompt})
-    active_session["logs"].append(user_input)
-    track_usage(contextualized_prompt)
+    if uploaded_image is not None:
+        st.image(uploaded_image, caption="Attached Diagnostic Screenshot", width=300)
+
+    active_session["messages"].append({"role": "user", "content": message_content})
+    track_usage(contex_text)
 
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
-        with st.spinner("Calculating educational layout..."):
-            completion = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=active_session["messages"],
-                stream=False
-            )
-        output_text = completion.choices[0].message.content
+        with st.spinner("Analyzing environment diagnostics..."):
+            try:
+                # Use a vision-capable model if an image is attached, otherwise use the default model
+                active_model = "qwen/qwen3.8-27b" if uploaded_image is not None else "openai/gpt-oss-20b"
+                
+                completion = client.chat.completions.create(
+                    model=active_model,
+                    messages=active_session["messages"],
+                    stream=False
+                )
+                output_text = completion.choices[0].message.content
+            except Exception as e:
+                output_text = f"⚠️ Error communicating with Groq API: {e}"
+
         track_usage(output_text)
         response_placeholder.write(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
+        
+        # Clear the uploaded image state after sending so it doesn't duplicate on the next turn
         st.rerun()
