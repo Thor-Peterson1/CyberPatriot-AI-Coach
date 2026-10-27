@@ -100,7 +100,10 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
 
 # TOOL 2: Generate Short Quiz
 if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
-    quiz_payload = [{"role": "system", "content": QUIZ_SYSTEM_PROMPT}, {"role": "user", "content": f"Create a short 3-MCQ and 1-Free Response quiz tracking core security metrics on {system_choice}."}]
+    quiz_payload = [
+        {"role": "system", "content": QUIZ_SYSTEM_PROMPT}, 
+        {"role": "user", "content": f"Create a short 3-MCQ and 1-Free Response quiz tracking core security metrics on {system_choice}."}
+    ]
     active_session["logs"].append("📝 Generated Quick Quiz")
     track_usage(f"Quiz on {system_choice}")
     
@@ -113,7 +116,11 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         )
         output_text = completion.choices[0].message.content
         track_usage(output_text)
+        
+        # Save quiz to messages and set quiz active flag
         active_session["messages"].append({"role": "assistant", "content": output_text})
+        active_session["quiz_active"] = True
+        active_session["last_quiz_text"] = output_text
     st.rerun()
 
 # TOOL 3: Reveal Quiz Answers Shortcut
