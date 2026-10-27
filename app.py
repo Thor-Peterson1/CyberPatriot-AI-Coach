@@ -1,6 +1,7 @@
 import streamlit as st
 from groq import Groq
 import time
+import base64
 
 # 1. Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
