@@ -275,6 +275,78 @@ else:
     st.info("⚙️ **GENERAL SECURITY METRICS** — Mixed-environment architecture overview active.")
 st.markdown("---")
 
+# INTERACTIVE QUIZ SUBMISSION DASHBOARD
+if active_session.get("quiz_active", False):
+    st.markdown("---")
+    st.markdown("### 📝 Active Quiz Assessment Engine")
+    st.info("Review the quiz questions above in the chat feed, then submit your answers below to get your score and detailed corrections!")
+    
+    with st.form("quiz_submission_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            q1_ans = st.selectbox("Question 1 Answer:", ["Select...", "A", "B", "C", "D"])
+            q2_ans = st.selectbox("Question 2 Answer:", ["Select...", "A", "B", "C", "D"])
+        with col2:
+            q3_ans = st.selectbox("Question 3 Answer:", ["Select...", "A", "B", "C", "D"])
+            q4_ans = st.text_input("Question 4 (Free Response Answer):", placeholder="Type your short answer here...")
+            
+        submitted_quiz = st.form_submit_button("🎓 Submit Answers for Grading", use_container_width=True)
+        
+        if submitted_quiz:
+            if q1_ans == "Select..." or q2_ans == "Select..." or q3_ans == "Select..." or not q4_ans.strip():
+                st.warning("Please answer all 4 questions before submitting!")
+            else:
+                grading_prompt = f"""
+                The student has submitted their answers for the quiz:
+                - Question 1: {q1_ans}
+                - Question 2: {q2_ans}
+                - Question 3: {q3_ans}
+                - Question 4 (Free Response): {q4_ans}
+
+                Please grade these answers against the quiz you generated. 
+                You MUST start your response with a clear score line formatted exactly like this: `SCORE: X/4` (where X is the number of correct answers, 0 to 4).
+                Follow the score with detailed explanations and corrections for each question.
+                """
+                
+                active_session["messages"].append({"role": "user", "content": grading_prompt})
+                
+                with st.spinner("Grading your submission..."):
+                    completion = client.chat.completions.create(
+                        model="openai/gpt-oss-20b",
+                        messages=active_session["messages"],
+                        stream=False
+                    )
+                    grading_result = completion.choices[0].message.content
+                    active_session["messages"].append({"role": "assistant", "content": grading_result})
+                    
+                    # Attempt to extract score for badge display
+                    import re
+                    score_match = re.search(r"SCORE:\s*(\d+)/4", grading_result, re.IGNORECASE)
+                    if score_match:
+                        earned_score = int(score_match.group(1))
+                        active_session["last_score"] = earned_score
+                    else:
+                        active_session["last_score"] = None
+                        
+                    active_session["quiz_active"] = False # Reset quiz active state
+                st.rerun()
+
+# Display Last Score Badge if available
+if "last_score" in active_session and active_session["last_score"] is not None:
+    score = active_session["last_score"]
+    st.markdown("---")
+    col_a, col_b = st.columns([1, 3])
+    with col_a:
+        st.metric(label="Latest Quiz Score", value=f"{score}/4", delta=f"{int((score/4)*100)}%")
+    with col_b:
+        if score == 4:
+        #   st.success("🏆 Flawless victory! Perfect score on this challenge.") # handled below
+            pass
+        elif score >= 3:
+            st.success("Great job! You have a solid grasp of these concepts.")
+        else:
+            st.warning("Keep practicing! Review the feedback breakdown above to strengthen your hardening skills.")
+
 # INTERACTIVE CHECKLIST TRACKER WIDGET
 if "checklist" in active_session and active_session["checklist"]:
     st.markdown("### 🎯 Live Hardening Checklist Tracker")
@@ -312,6 +384,7 @@ for msg in active_session["messages"]:
             else:
                 st.chat_message(msg["role"]).write(msg["content"])
 
+# Quick Prompt Start Buttons
 if len(active_session["messages"]) <= 1:
     st.markdown("#### 💡 Quick Prompt Starters")
     col1, col2 = st.columns(2)
