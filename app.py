@@ -200,7 +200,7 @@ sudo apt update && sudo apt upgrade
 sudo nano /etc/ssh/sshd_config  # PermitRootLogin no
 
 # Find unauthorized media files
-sudo find / -name "*.mp3" -o -name "*.avi" -o -name "*.mov"""", language="bash")
+sudo find / -name '*.mp3' -o -name '*.avi' -o -name '*.mov'""", language="bash")
 
 elif os_tool_tab == "Cisco IOS":
     st.sidebar.code("""# Enable config mode & set password encryption
