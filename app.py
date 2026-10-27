@@ -279,7 +279,7 @@ st.markdown("---")
 if active_session.get("quiz_active", False):
     st.markdown("---")
     st.markdown("### 📝 Active Quiz Assessment Engine")
-    st.info("Review the quiz questions above in the chat feed, then submit your answers below to get your score and detailed corrections!")
+    st.info("Review the quiz questions below in the chat feed, then submit your answers below to get your score and detailed corrections!")
     
     with st.form("quiz_submission_form"):
         col1, col2 = st.columns(2)
