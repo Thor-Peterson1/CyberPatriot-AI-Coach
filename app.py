@@ -71,7 +71,7 @@ st.sidebar.markdown("### 🛠️ Study Tools")
 
 # TOOL 1: Generate Security Checklist
 if st.sidebar.button("📋 Generate Security Checklist", use_container_width=True):
-    checklist_trigger = f"Act as an automated security scanner. Generate a highly technical, point-by-point security hardening checklist for {system_choice}. Do not write a conversational introduction or conclusion. Format it completely as checkboxes (- [ ]) grouped by categories like User Management, Software/Services, Firewalls, and Audit Policies."
+    checklist_trigger = f"Act as an automated security scanner. Generate a short, highly technical, point-by-point security hardening checklist for {system_choice}. Format each item starting strictly with '- [ ] ' so it can be parsed. Group them clearly."
     active_session["messages"].append({"role": "user", "content": checklist_trigger})
     active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
     track_usage(checklist_trigger)
@@ -86,6 +86,17 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
         output_text = completion.choices[0].message.content
         track_usage(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
+        
+        # Parse checklist items out of the response text and store them
+        checklist_items = []
+        for line in output_text.split("\n"):
+            if line.strip().startswith("- [ ]") or line.strip().startswith("- [x]"):
+                clean_item = line.replace("- [ ]", "").replace("- [x]", "").strip()
+                if clean_item:
+                    checklist_items.append(clean_item)
+        
+        # Save into session state with unique keys
+        active_session["checklist"] = {item: False for item in checklist_items}
     st.rerun()
 
 # TOOL 2: Generate Short Quiz
