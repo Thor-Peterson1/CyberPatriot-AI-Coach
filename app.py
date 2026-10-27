@@ -196,13 +196,12 @@ st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total
 st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
 
     
-# 6. MAIN PANEL UI
+# 6. MAIN PANEL UI & IMAGE STATE CAPTURE
 st.title("🛡️ CYBERPATRIOT OPS MENTOR")
 st.caption("24/7 Practice assistant. Select an environment scope, launch study modules, or attach diagnostics files below.")
 st.markdown(f"**Active Workspace Context:** `{system_choice}` | **Session:** `{st.session_state.current_session_id}`")
 st.markdown("---")
 
-# True Background Banner Containers 
 if "Windows" in system_choice:
     st.info("🌐 **SYSTEM WORKING CONTEXT: WINDOWS PLATFORM LAB**\n\nActive Direct Access Hardening Policies Enforced — Auditing user accounts, registry baselines, and local groups.")
 elif "Linux" in system_choice:
@@ -213,12 +212,15 @@ else:
     st.info("⚙️ **GENERAL SECURITY METRICS** — Mixed-environment architecture overview active.")
 st.markdown("---")
 
-
-
 for msg in active_session["messages"]:
     if msg["role"] != "system":
         if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
-            st.chat_message(msg["role"]).write(msg["content"])
+            # Handle text vs multimodal list content display safely
+            if isinstance(msg["content"], list):
+                text_content = next((item["text"] for item in msg["content"] if item["type"] == "text"), "")
+                st.chat_message(msg["role"]).write(text_content)
+            else:
+                st.chat_message(msg["role"]).write(msg["content"])
 
 if len(active_session["messages"]) <= 1:
     st.markdown("#### 💡 Quick Prompt Starters")
@@ -230,9 +232,12 @@ if len(active_session["messages"]) <= 1:
         if st.button("🚫 Show Common Forbidden Software", use_container_width=True):
             st.session_state["shortcut_input"] = "List the most common forbidden software and media file extensions that cause penalties in competition images."
 
-uploaded_image = st.file_uploader("🖼️ Upload system error screenshots or policy diagnostics pictures for analysis:", type=["png", "jpg", "jpeg"])
-if uploaded_image is not None:
-    st.success(f"Successfully processed image file: '{uploaded_image.name}'!")
+# PERSISTENT UPLOADER: Save file to session state so it survives re-runs
+uploaded_file = st.file_uploader("🖼️ Upload system error screenshots or policy diagnostics pictures for analysis:", type=["png", "jpg", "jpeg"], key="image_uploader_widget")
+
+if uploaded_file is not None:
+    st.session_state["persisted_image"] = uploaded_file
+    st.success(f"Successfully attached: '{uploaded_file.name}'! Ready to send with your message.")
 
 # 7. Live Input Loop & Multimodal Handler
 default_input_val = st.session_state.pop("shortcut_input") if "shortcut_input" in st.session_state else ""
@@ -240,47 +245,45 @@ user_entry = st.chat_input("Ask a tracking question, check configurations, or pa
 
 user_input = default_input_val if default_input_val else user_entry
 
-# Capture uploaded image from Streamlit widget above
-uploaded_image = st.session_state.get("uploaded_image_widget") # or use your existing variable name
-
 if user_input:
-    # Base configuration for the message
-    contex_text = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
+    context_text = f"[{system_choice} Context] {user_input}. Note: If this is an answer submission for a quiz, evaluate it and show the solution breakdown."
     
-    # Check if user uploaded an image alongside their prompt
-    if uploaded_image is not None:
-        # Read and encode the image to base64
-        bytes_data = uploaded_image.getvalue()
+    # Check if a persisted image exists in session state
+    active_image = st.session_state.get("persisted_image", None)
+    
+    if active_image is not None:
+        # Encode image to base64
+        bytes_data = active_image.getvalue()
         base64_encoded_image = base64.b64encode(bytes_data).decode("utf-8")
         
-        # Construct multimodal message content structure for Groq Vision
+        # Build Groq multimodal message block
         message_content = [
-            {"type": "text", "text": contex_text},
+            {"type": "text", "text": context_text},
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": f"data:image/{uploaded_image.type.split('/')[-1]};base64,{base64_encoded_image}"
+                    "url": f"data:image/{active_image.type.split('/')[-1]};base64,{base64_encoded_image}"
                 }
             }
         ]
-        active_session["logs"].append(f"🖼️ Analyzed image: {uploaded_image.name}")
+        active_session["logs"].append(f"🖼️ Analyzed image: {active_image.name}")
     else:
-        message_content = contex_text
+        message_content = context_text
         active_session["logs"].append(user_input)
 
     st.chat_message("user").write(user_input)
-    if uploaded_image is not None:
-        st.image(uploaded_image, caption="Attached Diagnostic Screenshot", width=300)
+    if active_image is not None:
+        st.image(active_image, caption="Attached Diagnostic Screenshot", width=300)
 
     active_session["messages"].append({"role": "user", "content": message_content})
-    track_usage(contex_text)
+    track_usage(context_text)
 
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
         with st.spinner("Analyzing environment diagnostics..."):
             try:
-                # Use a vision-capable model if an image is attached, otherwise use the default model
-                active_model = "qwen/qwen3.8-27b" if uploaded_image is not None else "openai/gpt-oss-20b"
+                # Switch to Groq's vision model if an image is present, otherwise keep standard model
+                active_model = "qwen/qwen3.8-27b" if active_image is not None else "openai/gpt-oss-20b"
                 
                 completion = client.chat.completions.create(
                     model=active_model,
@@ -295,5 +298,8 @@ if user_input:
         response_placeholder.write(output_text)
         active_session["messages"].append({"role": "assistant", "content": output_text})
         
-        # Clear the uploaded image state after sending so it doesn't duplicate on the next turn
+        # Clear the image from session state after it's processed so it doesn't attach to future messages
+        if "persisted_image" in st.session_state:
+            del st.session_state["persisted_image"]
+            
         st.rerun()
