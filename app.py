@@ -1,3 +1,5 @@
+#  Hello! Thanks for checking out my program!  #
+
 import streamlit as st
 from groq import Groq
 import time
@@ -168,6 +170,41 @@ for sid in list(st.session_state.sessions.keys()):
     if st.sidebar.button(button_label, key=f"nav_{sid}", use_container_width=True):
         st.session_state.current_session_id = sid
         st.rerun()
+
+# TOOL: Quick-Copy Command Toolbox
+st.sidebar.markdown("---")
+st.sidebar.markdown("### ⚡ Quick-Copy Toolbox")
+
+os_tool_tab = st.sidebar.selectbox("Select OS Commands:", ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"])
+
+if os_tool_tab == "Windows PowerShell":
+    st.sidebar.code("""
+# Audit accounts & passwords
+Get-LocalUser
+Get-CimInstance Win32_UserAccount
+
+# Disable guest account
+Disable-LocalUser -Name "Guest"
+
+# Enforce password complexity via SecPol
+secedit /export /cfg C:\secpol.cfg
+# (Edit cfg or use GPO)
+""", language="powershell")
+
+elif os_tool_tab == "Linux (Ubuntu/Debian)":
+    st.sidebar.code("""
+# Check active listening ports
+sudo ss -tulpn
+
+# Update package manager & secure ssh
+sudo apt update && sudo apt upgrade
+sudo nano /etc/ssh/sshd_config  # PermitRootLogin no
+
+# Find unauthorized media files
+sudo find / -name "*.mp3" -o -name "*.avi" -o -name "*.mov"
+""", language="bash")
+
+
 
 # TOOL 5: Export Transcript Feature (MOVED ABOVE ANALYTICS)
 st.sidebar.markdown("---")
