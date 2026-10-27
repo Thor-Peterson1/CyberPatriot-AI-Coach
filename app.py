@@ -204,7 +204,19 @@ sudo nano /etc/ssh/sshd_config  # PermitRootLogin no
 sudo find / -name "*.mp3" -o -name "*.avi" -o -name "*.mov"
 """, language="bash")
 
+elif os_tool_tab == "Cisco IOS":
+    st.sidebar.code("""
+# Enable config mode & set password encryption
+en
+conf t
+service password-encryption
 
+# Secure console & vty lines
+line con 0
+password SECURE_PASS
+login
+exit
+""", language="text")
 
 # TOOL 5: Export Transcript Feature (MOVED ABOVE ANALYTICS)
 st.sidebar.markdown("---")
