@@ -175,11 +175,13 @@ for sid in list(st.session_state.sessions.keys()):
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ⚡ Quick-Copy Toolbox")
 
-os_tool_tab = st.sidebar.selectbox("Select OS Commands:", ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"])
+os_tool_tab = st.sidebar.selectbox(
+    "Select OS Commands:", 
+    ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"]
+)
 
 if os_tool_tab == "Windows PowerShell":
-    st.sidebar.code("""
-# Audit accounts & passwords
+    st.sidebar.code("""# Audit accounts & passwords
 Get-LocalUser
 Get-CimInstance Win32_UserAccount
 
@@ -187,13 +189,10 @@ Get-CimInstance Win32_UserAccount
 Disable-LocalUser -Name "Guest"
 
 # Enforce password complexity via SecPol
-secedit /export /cfg C:\secpol.cfg
-# (Edit cfg or use GPO)
-""", language="powershell")
+secedit /export /cfg C:\\secpol.cfg""", language="powershell")
 
 elif os_tool_tab == "Linux (Ubuntu/Debian)":
-    st.sidebar.code("""
-# Check active listening ports
+    st.sidebar.code("""# Check active listening ports
 sudo ss -tulpn
 
 # Update package manager & secure ssh
@@ -201,12 +200,10 @@ sudo apt update && sudo apt upgrade
 sudo nano /etc/ssh/sshd_config  # PermitRootLogin no
 
 # Find unauthorized media files
-sudo find / -name "*.mp3" -o -name "*.avi" -o -name "*.mov"
-""", language="bash")
+sudo find / -name "*.mp3" -o -name "*.avi" -o -name "*.mov"""", language="bash")
 
 elif os_tool_tab == "Cisco IOS":
-    st.sidebar.code("""
-# Enable config mode & set password encryption
+    st.sidebar.code("""# Enable config mode & set password encryption
 en
 conf t
 service password-encryption
@@ -215,8 +212,7 @@ service password-encryption
 line con 0
 password SECURE_PASS
 login
-exit
-""", language="text")
+exit""", language="text")
 
 # TOOL 5: Export Transcript Feature (MOVED ABOVE ANALYTICS)
 st.sidebar.markdown("---")
