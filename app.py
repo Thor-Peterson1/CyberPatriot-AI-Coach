@@ -25,9 +25,8 @@ Structure your response clearly with clean markdown bolding and bullet points so
 
 QUIZ_SYSTEM_PROMPT = """
 You are an objective CyberPatriot testing engine. 
-Generate exactly 3 multiple choice questions and 1 free response question based on the selected operating system scope.
-DO NOT include any answers, explanations, solution concepts, or actionable steps in your initial response. Only provide the questions and choice options (A, B, C, D).
-When the user submits their answers, grade them accurately and provide the corrections.
+Generate exactly 3 multiple choice questions (with options A, B, C, D) and 1 free response question based on the selected operating system scope.
+Make sure the questions are clearly numbered (Question 1, Question 2, Question 3, Question 4).
 """
 
 # 4. Initialize session state tracking variables
