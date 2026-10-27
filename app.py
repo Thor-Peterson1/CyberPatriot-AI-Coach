@@ -269,6 +269,33 @@ else:
     st.info("⚙️ **GENERAL SECURITY METRICS** — Mixed-environment architecture overview active.")
 st.markdown("---")
 
+# INTERACTIVE CHECKLIST TRACKER WIDGET
+if "checklist" in active_session and active_session["checklist"]:
+    st.markdown("### 🎯 Live Hardening Checklist Tracker")
+    st.caption("Check off items as you complete them in your virtual machine lab to track your hardening progress!")
+    
+    checklist_dict = active_session["checklist"]
+    total_tasks = len(checklist_dict)
+    
+    # Render checkboxes
+    completed_count = 0
+    for task, is_checked in checklist_dict.items():
+        # st.checkbox returns True if checked
+        status = st.checkbox(task, value=is_checked, key=f"check_{task}")
+        active_session["checklist"][task] = status
+        if status:
+            completed_count += 1
+            
+    # Progress Bar Calculation
+    progress_percentage = completed_count / total_tasks if total_tasks > 0 else 0
+    st.progress(progress_percentage, text=f"Hardening Progress: {completed_count}/{total_tasks} Tasks Completed ({int(progress_percentage * 100)}%)")
+    
+    if completed_count == total_tasks and total_tasks > 0:
+        st.balloons()
+        st.success("🎉 Incredible job! All hardening tasks for this checklist are complete!")
+    
+    st.markdown("---")
+
 for msg in active_session["messages"]:
     if msg["role"] != "system":
         if msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
