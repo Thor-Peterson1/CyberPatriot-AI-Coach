@@ -111,27 +111,30 @@ theme_choice = st.sidebar.selectbox(
     key="theme_mode_selector"
 )
 
-# Define color variables based on selected theme
+# Define two-tone color palettes (Base Background + Complementary Accent + Readable Body Text)
 if "Relaxed" in theme_choice:
-    app_bg = "#1c1917"          # Warm dark charcoal/brown
-    secondary_bg = "#292524"
-    text_color = "#f59e0b"      # Soft amber glow
-    card_bg = "#26211e"
-    border_color = "#44403c"
+    app_bg = "#191512"          # Deep warm espresso background
+    sidebar_bg = "#231d18"      # Slightly lighter warm sidebar
+    body_text = "#f3e8d2"       # Soft cream text (easy to read)
+    accent_color = "#f59e0b"    # Warm amber/gold for headers, buttons & borders
+    accent_hover = "#d97706"    # Darker amber on button hover
+    card_bg = "#241e19"
 elif "Cool" in theme_choice:
-    app_bg = "#0f172a"          # Deep slate blue
-    secondary_bg = "#1e293b"
-    text_color = "#38bdf8"      # Cool cyan/blue
-    card_bg = "#1e293b"
-    border_color = "#334155"
-else: # Standard Dark Mode
+    app_bg = "#0b132b"          # Deep slate navy background
+    sidebar_bg = "#111d3a"      # Slightly lighter navy sidebar
+    body_text = "#e2e8f0"       # Crisp cool off-white text (easy to read)
+    accent_color = "#10b981"    # Emerald/mint green for headers, buttons & borders
+    accent_hover = "#059669"    # Deeper green on button hover
+    card_bg = "#132042"
+else:  # Standard Dark Mode
     app_bg = "#0e1117"
-    secondary_bg = "#262730"
-    text_color = "#fafafa"
+    sidebar_bg = "#1a1d24"
+    body_text = "#fafafa"
+    accent_color = "#6366f1"    # Indigo accent
+    accent_hover = "#4f46e5"
     card_bg = "#1e1e2f"
-    border_color = "#3f3f5f"
 
-# Inject Custom CSS to apply the theme globally
+# Inject Two-Tone Custom CSS
 st.markdown(f"""
 <style>
     /* Main App Background */
@@ -139,20 +142,40 @@ st.markdown(f"""
         background-color: {app_bg} !important;
     }}
     
-    /* Sidebar Background */
+    /* Sidebar Background & Right Accent Border */
     [data-testid="stSidebar"] {{
-        background-color: {secondary_bg} !important;
+        background-color: {sidebar_bg} !important;
+        border-right: 1px solid {accent_color}44;
     }}
     
-    /* Global Text Color Adjustment */
+    /* Readable Body Text */
     p, span, label, .stMarkdown {{
-        color: {text_color} !important;
+        color: {body_text} !important;
+    }}
+
+    /* Complementary Accent Color for Headers & Titles */
+    h1, h2, h3, h4 {{
+        color: {accent_color} !important;
+    }}
+
+    /* Complementary Accent Styling for Buttons */
+    .stButton > button, .stDownloadButton > button {{
+        background-color: {card_bg} !important;
+        color: {accent_color} !important;
+        border: 1px solid {accent_color} !important;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }}
+
+    .stButton > button:hover, .stDownloadButton > button:hover {{
+        background-color: {accent_color} !important;
+        color: {app_bg} !important;
     }}
 
     /* Custom Dashboard Card Container */
     .cyber-card {{
         background-color: {card_bg};
-        border: 1px solid {border_color};
+        border: 1px solid {accent_color}66;
         padding: 16px;
         border-radius: 10px;
         margin-bottom: 12px;
@@ -161,7 +184,7 @@ st.markdown(f"""
     /* Metric Card Polish */
     [data-testid="stMetric"] {{
         background-color: {card_bg};
-        border: 1px solid {border_color};
+        border: 1px solid {accent_color}66;
         padding: 10px 15px;
         border-radius: 8px;
     }}
