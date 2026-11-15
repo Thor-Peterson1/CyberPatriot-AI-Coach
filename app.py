@@ -105,17 +105,37 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
 is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
 
-# Define dynamic background colors for custom cards based on the toggle switch
+# 🌙 Theme Toggle & Custom CSS Styling
+st.sidebar.title("🛡️ CP-OPS Dashboard")
+is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
+st.sidebar.markdown("---")
+
+# Define color schemes based on toggle
 if is_dark_mode:
+    app_bg = "#0e1117"
+    text_color = "#fafafa"
     card_bg = "#1e1e2f"
     border_color = "#3f3f5f"
 else:
+    app_bg = "#ffffff"
+    text_color = "#31333F"
     card_bg = "#f8f9fa"
     border_color = "#d1d5db"
 
-# Inject Safe Custom CSS (Avoids breaking Streamlit's global text elements)
+# Safe CSS injection that changes background and text without breaking native widgets
 st.markdown(f"""
 <style>
+    /* Target the main app container background and text */
+    .stApp {{
+        background-color: {app_bg} !important;
+        color: {text_color} !important;
+    }}
+    
+    /* Ensure markdown text inherits the correct color */
+    .stApp markdown, p, span, h1, h2, h3, h4, h5, h6 {{
+        color: {text_color} !important;
+    }}
+
     /* Custom Dashboard Card Container */
     .cyber-card {{
         background-color: {card_bg};
@@ -123,6 +143,7 @@ st.markdown(f"""
         padding: 16px;
         border-radius: 10px;
         margin-bottom: 12px;
+        color: {text_color};
     }}
     
     /* Metric Card Polish */
