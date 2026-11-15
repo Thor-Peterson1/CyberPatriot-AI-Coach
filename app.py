@@ -100,6 +100,23 @@ active_session = st.session_state.sessions[st.session_state.current_session_id]
 # 5. SIDEBAR: Dashboard Configuration & Navigation
 st.sidebar.title("🛡️ CP-OPS Dashboard")
 
+theme_choice = st.sidebar.selectbox(
+    "Select Color Theme:",
+    ["Standard Dark Mode (Default)", "Relaxed Amber (Warm)", "Cool Blue/Green (Terminal)"],
+    index=0,
+    key="theme_mode_selector"
+)
+
+st.sidebar.markdown("---")
+
+# Target Platform Selection (DEFINED HERE SO IT IS AVAILABLE GLOBALLY)
+system_choice = st.sidebar.selectbox(
+    "Choose target environment:",
+    ["General / Mixed", "Windows Server / Desktop", "Linux (Ubuntu/Debian)", "Cisco Packet Tracer"],
+    index=0,
+    key="target_env_selectbox"
+)
+
 # 🌙 Theme Toggle & Custom CSS Styling
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
