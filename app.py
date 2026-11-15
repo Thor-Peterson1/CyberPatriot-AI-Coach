@@ -105,11 +105,6 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
 is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
 
-# 🌙 Theme Toggle & Custom CSS Styling
-st.sidebar.title("🛡️ CP-OPS Dashboard")
-is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
-st.sidebar.markdown("---")
-
 # Define color schemes based on toggle
 if is_dark_mode:
     app_bg = "#0e1117"
