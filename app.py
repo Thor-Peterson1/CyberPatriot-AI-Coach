@@ -66,7 +66,11 @@ Generate exactly 3 multiple choice questions (with options A, B, C, D) and 1 fre
 Make sure the questions are clearly numbered (Question 1, Question 2, Question 3, Question 4).
 """
 
-# 4. Initialize session state tracking variables
+# 4. Initialize session state tracking variables & helpers
+def track_usage(text_input):
+    words = len(str(text_input).split())
+    st.session_state.total_words_processed += words
+
 if "sessions" not in st.session_state:
     st.session_state.sessions = {}
 if "current_session_id" not in st.session_state:
@@ -76,24 +80,22 @@ if "session_counter" not in st.session_state:
 if "total_words_processed" not in st.session_state:
     st.session_state.total_words_processed = 0
 
-# Initialize active session list if empty
+# Initialize active session (checks SQLite DB first, otherwise creates a fresh one)
 if st.session_state.current_session_id not in st.session_state.sessions:
-    st.session_state.sessions[st.session_state.current_session_id] = {
-        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
-        "logs": []
-    }
-
-# Update session initialization dictionary defaults:
-if st.session_state.current_session_id not in st.session_state.sessions:
-    st.session_state.sessions[st.session_state.current_session_id] = {
-        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
-        "logs": [],
-        "last_score": None,
-        "quiz_difficulty": "Intermediate"  # Starting default difficulty
-    }
+    saved_data = load_session_from_db(st.session_state.current_session_id)
+    if saved_data:
+        st.session_state.sessions[st.session_state.current_session_id] = saved_data
+    else:
+        st.session_state.sessions[st.session_state.current_session_id] = {
+            "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
+            "logs": [],
+            "last_score": None,
+            "quiz_difficulty": "Intermediate"
+        }
 
 # Fetch pointers for active session
 active_session = st.session_state.sessions[st.session_state.current_session_id]
+
 
 # 5. SIDEBAR: Dashboard Configuration & Navigation
 st.sidebar.title("🛡️ CP-OPS Dashboard")
