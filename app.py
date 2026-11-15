@@ -103,53 +103,31 @@ st.sidebar.title("🛡️ CP-OPS Dashboard")
 # 🌙 Theme Toggle & Custom CSS Styling
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
-is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
 
-# Define color schemes based on toggle
-if is_dark_mode:
-    app_bg = "#0e1117"
-    text_color = "#fafafa"
-    card_bg = "#1e1e2f"
-    border_color = "#3f3f5f"
-else:
-    app_bg = "#ffffff"
-    text_color = "#31333F"
-    card_bg = "#f8f9fa"
-    border_color = "#d1d5db"
+if "theme_mode" not in st.session_state:
+    st.session_state.theme_mode = "dark"
 
-# Safe CSS injection that changes background and text without breaking native widgets
-st.markdown(f"""
-<style>
-    /* Target the main app container background and text */
-    .stApp {{
-        background-color: {app_bg} !important;
-        color: {text_color} !important;
-    }}
-    
-    /* Ensure markdown text inherits the correct color */
-    .stApp markdown, p, span, h1, h2, h3, h4, h5, h6 {{
-        color: {text_color} !important;
-    }}
+is_dark = st.sidebar.toggle(
+    "🌙 Dark Mode", 
+    value=(st.session_state.theme_mode == "dark"), 
+    key="native_theme_toggle"
+)
 
-    /* Custom Dashboard Card Container */
-    .cyber-card {{
-        background-color: {card_bg};
-        border: 1px solid {border_color};
-        padding: 16px;
-        border-radius: 10px;
-        margin-bottom: 12px;
-        color: {text_color};
-    }}
-    
-    /* Metric Card Polish */
-    [data-testid="stMetric"] {{
-        background-color: {card_bg};
-        border: 1px solid {border_color};
-        padding: 10px 15px;
-        border-radius: 8px;
-    }}
-</style>
-""", unsafe_allow_html=True)
+new_mode = "dark" if is_dark else "light"
+
+if new_mode != st.session_state.theme_mode:
+    st.session_state.theme_mode = new_mode
+    if new_mode == "dark":
+        st._config.set_option("theme.base", "dark")
+        st._config.set_option("theme.backgroundColor", "#0e1117")
+        st._config.set_option("theme.secondaryBackgroundColor", "#262730")
+        st._config.set_option("theme.textColor", "#fafafa")
+    else:
+        st._config.set_option("theme.base", "light")
+        st._config.set_option("theme.backgroundColor", "#ffffff")
+        st._config.set_option("theme.secondaryBackgroundColor", "#f0f2f6")
+        st._config.set_option("theme.textColor", "#31333f")
+    st.rerun()
 
 st.sidebar.markdown("---")
 
