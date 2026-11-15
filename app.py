@@ -4,6 +4,43 @@ import streamlit as st
 from groq import Groq
 import time
 import base64
+import sqlite3
+import json
+
+# Initialize SQLite Database for Persistent Storage
+def init_db():
+    conn = sqlite3.connect("cyberpatriot_coach.db", check_same_thread=False)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            session_id TEXT PRIMARY KEY,
+            data TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# Load/Save Helpers
+def load_session_from_db(session_id):
+    conn = sqlite3.connect("cyberpatriot_coach.db", check_same_thread=False)
+    cursor = conn.cursor()
+    cursor.execute("SELECT data FROM sessions WHERE session_id = ?", (session_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return json.loads(row[0])
+    return None
+
+def save_session_to_db(session_id, session_data):
+    conn = sqlite3.connect("cyberpatriot_coach.db", check_same_thread=False)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT OR REPLACE INTO sessions (session_id, data) VALUES (?, ?)
+    """, (session_id, json.dumps(session_data)))
+    conn.commit()
+    conn.close()
 
 # 1. Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
