@@ -45,6 +45,51 @@ def save_session_to_db(session_id, session_data):
 # 1. Page Configuration & Layout
 st.set_page_config(page_title="CyberPatriot AI Coach", page_icon="🛡️", layout="wide")
 
+# 🌙 Theme Toggle & Custom CSS Styling
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🎨 Theme & Appearance")
+is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
+
+# Define dynamic color variables based on the toggle switch
+if is_dark_mode:
+    bg_color = "#0e1117"
+    text_color = "#fafafa"
+    card_bg = "#1e1e2f"
+    border_color = "#3f3f5f"
+else:
+    bg_color = "#ffffff"
+    text_color = "#31333F"
+    card_bg = "#f8f9fa"
+    border_color = "#d1d5db"
+
+# Inject Custom Dynamic CSS
+st.markdown(f"""
+<style>
+    /* Main App Background & Text */
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
+    
+    /* Custom Dashboard Card Container */
+    .cyber-card {{
+        background-color: {card_bg};
+        border: 1px solid {border_color};
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+    }}
+    
+    /* Metric Card Polish */
+    [data-testid="stMetric"] {{
+        background-color: {card_bg};
+        border: 1px solid {border_color};
+        padding: 10px 15px;
+        border-radius: 8px;
+    }}
+</style>
+""", unsafe_allow_html=True)
+
 # 2. Initialize the ai client
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
