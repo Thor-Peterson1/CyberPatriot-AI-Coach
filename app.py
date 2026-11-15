@@ -296,10 +296,14 @@ if full_transcript:
 else:
     st.sidebar.caption("Chat with the mentor or generate a checklist to unlock download export options.")
 
-# LIVE ANALYTICS COMPONENT (MOVED TO ABSOLUTE BOTTOM)
+# LIVE ANALYTICS MONITOR (Upgraded with Token Estimator)
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Live Analytics Monitor")
 st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
+
+# Approximate token calculation (~1.3 tokens per word)
+estimated_tokens = int(st.session_state.total_words_processed * 1.3)
+st.sidebar.metric(label="Estimated API Tokens", value=f"{estimated_tokens:,} tokens")
 st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
 
     
