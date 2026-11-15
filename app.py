@@ -144,6 +144,10 @@ active_session = st.session_state.sessions[st.session_state.current_session_id]
 
 # 5. SIDEBAR: Dashboard Configuration & Navigation
 st.sidebar.title("🛡️ CP-OPS Dashboard")
+
+# Compact toggle placed right under the title at the top
+is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
+
 st.sidebar.markdown("---")
 
 # Target Platform Selection
