@@ -46,6 +46,15 @@ if st.session_state.current_session_id not in st.session_state.sessions:
         "logs": []
     }
 
+# Update session initialization dictionary defaults:
+if st.session_state.current_session_id not in st.session_state.sessions:
+    st.session_state.sessions[st.session_state.current_session_id] = {
+        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
+        "logs": [],
+        "last_score": None,
+        "quiz_difficulty": "Intermediate"  # Starting default difficulty
+    }
+
 # Fetch pointers for active session
 active_session = st.session_state.sessions[st.session_state.current_session_id]
 
@@ -113,16 +122,38 @@ if st.sidebar.button("📋 Generate Security Checklist", use_container_width=Tru
         active_session["checklist_platform"] = system_choice
     st.rerun()
 
-# TOOL 2: Generate Short Quiz
+# TOOL 2: Generate Short Quiz (With Dynamic Difficulty Scaling)
 if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
+    # Determine difficulty adjustment based on previous score
+    current_diff = active_session.get("quiz_difficulty", "Intermediate")
+    last_score = active_session.get("last_score")
+    
+    if last_score is not None:
+        if last_score == 4:
+            current_diff = "Advanced / Hardened Expert"
+        elif last_score <= 2:
+            current_diff = "Beginner / Foundational"
+        else:
+            current_diff = "Intermediate"
+    
+    active_session["quiz_difficulty"] = current_diff
+
+    quiz_prompt = (
+        f"Generate a short quiz tracking core security metrics on {system_choice} "
+        f"at a **{current_diff}** difficulty level. "
+        "Generate exactly 3 multiple choice questions (with options A, B, C, D) "
+        "and 1 free response question. Number them clearly (Question 1 to 4)."
+    )
+
     quiz_payload = [
         {"role": "system", "content": QUIZ_SYSTEM_PROMPT}, 
-        {"role": "user", "content": f"Create a short 3-MCQ and 1-Free Response quiz tracking core security metrics on {system_choice}."}
+        {"role": "user", "content": quiz_prompt}
     ]
-    active_session["logs"].append("📝 Generated Quick Quiz")
-    track_usage(f"Quiz on {system_choice}")
     
-    with st.spinner("Generating clean quiz..."):
+    active_session["logs"].append(f"📝 Generated {current_diff} Quiz")
+    track_usage(quiz_prompt)
+    
+    with st.spinner(f"Generating {current_diff} quiz..."):
         time.sleep(0.5)
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
@@ -132,10 +163,8 @@ if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
         output_text = completion.choices[0].message.content
         track_usage(output_text)
         
-        # Save quiz to messages and set quiz active flag
         active_session["messages"].append({"role": "assistant", "content": output_text})
         active_session["quiz_active"] = True
-        active_session["last_quiz_text"] = output_text
     st.rerun()
 
 # TOOL 3: Reveal Quiz Answers Shortcut
