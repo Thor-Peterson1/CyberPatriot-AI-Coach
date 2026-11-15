@@ -100,16 +100,48 @@ def track_usage(text_input):
     words = len(str(text_input).split())
     st.session_state.total_words_processed += words
 
-# 5. SIDEBAR: Dashboard Configuration
 st.sidebar.title("🛡️ CP-OPS Dashboard")
 st.sidebar.markdown("---")
 
-# Target Platform Selection
+# Target Platform Selection (Always visible at top)
 system_choice = st.sidebar.selectbox(
     "Choose target environment:",
     ["General / Mixed", "Windows Server / Desktop", "Linux (Ubuntu/Debian)", "Cisco Packet Tracer"],
     index=0
 )
+
+# EXPANDER 1: Study & Training Tools
+with st.sidebar.expander("🛠️ Study & Training Tools", expanded=True):
+    if st.button("📋 Generate Security Checklist", use_container_width=True):
+        # [Your checklist code here]
+        pass
+        
+    if st.button("🚀 Generate Quick Quiz", use_container_width=True):
+        # [Your quiz code here]
+        pass
+        
+    if st.button("🔓 Reveal Quiz Answers", use_container_width=True):
+        # [Your reveal code here]
+        pass
+
+# EXPANDER 2: Quick-Copy Command Toolbox
+with st.sidebar.expander("⚡ Quick-Copy Toolbox", expanded=False):
+    os_tool_tab = st.selectbox(
+        "Select OS Commands:", 
+        ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"]
+    )
+    if os_tool_tab == "Linux (Ubuntu/Debian)":
+        st.code("# Your Linux commands here...", language="bash")
+
+# EXPANDER 3: Session Management & Export
+with st.sidebar.expander("💬 Session & Data Export", expanded=False):
+    if st.button("➕ Start New Chat Session", use_container_width=True):
+        # [Session creation logic]
+        pass
+    if st.button("🗑️ Clear Current Logs", use_container_width=True):
+        # [Clear logs logic]
+        pass
+    # Download study notes button here...
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🛠️ Study Tools")
