@@ -111,30 +111,30 @@ theme_choice = st.sidebar.selectbox(
     key="theme_mode_selector"
 )
 
-# Define two-tone color palettes (Base Background + Complementary Accent + Readable Body Text)
+# Define clean color palettes per theme
 if "Relaxed" in theme_choice:
     app_bg = "#191512"          # Deep warm espresso background
-    sidebar_bg = "#231d18"      # Slightly lighter warm sidebar
-    body_text = "#f3e8d2"       # Soft cream text (easy to read)
-    accent_color = "#f59e0b"    # Warm amber/gold for headers, buttons & borders
-    accent_hover = "#d97706"    # Darker amber on button hover
+    sidebar_bg = "#231d18"      # Warm sidebar
+    body_text = "#f3e8d2"       # Soft cream text
+    accent_color = "#f59e0b"    # Warm amber/gold
     card_bg = "#241e19"
+    widget_bg = "#2d2620"
 elif "Cool" in theme_choice:
     app_bg = "#0b132b"          # Deep slate navy background
-    sidebar_bg = "#111d3a"      # Slightly lighter navy sidebar
-    body_text = "#e2e8f0"       # Crisp cool off-white text (easy to read)
-    accent_color = "#10b981"    # Emerald/mint green for headers, buttons & borders
-    accent_hover = "#059669"    # Deeper green on button hover
+    sidebar_bg = "#111d3a"      # Navy sidebar
+    body_text = "#e2e8f0"       # Crisp cool off-white text
+    accent_color = "#10b981"    # Emerald/mint green
     card_bg = "#132042"
-else:  # Standard Dark Mode
+    widget_bg = "#1a2c56"
+else:  # Standard Dark Mode (Clean neutral dark)
     app_bg = "#0e1117"
-    sidebar_bg = "#1a1d24"
+    sidebar_bg = "#161922"
     body_text = "#fafafa"
-    accent_color = "#6366f1"    # Indigo accent
-    accent_hover = "#4f46e5"
+    accent_color = "#38bdf8"    # Clean sky blue accent
     card_bg = "#1e1e2f"
+    widget_bg = "#262938"
 
-# Inject Two-Tone Custom CSS
+# Inject Clean Two-Tone CSS
 st.markdown(f"""
 <style>
     /* Main App Background */
@@ -142,23 +142,23 @@ st.markdown(f"""
         background-color: {app_bg} !important;
     }}
     
-    /* Sidebar Background & Right Accent Border */
+    /* Sidebar Background & Accent Border */
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg} !important;
-        border-right: 1px solid {accent_color}44;
+        border-right: 1px solid {accent_color}33;
     }}
     
     /* Readable Body Text */
-    p, span, label, .stMarkdown {{
+    p, span, label, .stMarkdown, .stCheckbox label {{
         color: {body_text} !important;
     }}
 
-    /* Complementary Accent Color for Headers & Titles */
+    /* Headers & Titles */
     h1, h2, h3, h4 {{
         color: {accent_color} !important;
     }}
 
-    /* Complementary Accent Styling for Buttons */
+    /* Buttons Styling */
     .stButton > button, .stDownloadButton > button {{
         background-color: {card_bg} !important;
         color: {accent_color} !important;
@@ -170,6 +170,13 @@ st.markdown(f"""
     .stButton > button:hover, .stDownloadButton > button:hover {{
         background-color: {accent_color} !important;
         color: {app_bg} !important;
+    }}
+
+    /* Dropdowns & Selectbox Fix (Prevents unwanted blue boxes) */
+    div[data-baseweb="select"] > div {{
+        background-color: {widget_bg} !important;
+        border-color: {accent_color}66 !important;
+        color: {body_text} !important;
     }}
 
     /* Custom Dashboard Card Container */
