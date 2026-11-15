@@ -104,30 +104,69 @@ st.sidebar.title("🛡️ CP-OPS Dashboard")
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
 
-if "theme_mode" not in st.session_state:
-    st.session_state.theme_mode = "dark"
-
-is_dark = st.sidebar.toggle(
-    "🌙 Dark Mode", 
-    value=(st.session_state.theme_mode == "dark"), 
-    key="native_theme_toggle"
+theme_choice = st.sidebar.selectbox(
+    "Select Color Theme:",
+    ["Dark Mode (Default)", "Relaxed Amber (Warm)", "Cool Blue/Green (Terminal)"],
+    index=0,
+    key="theme_mode_selector"
 )
 
-new_mode = "dark" if is_dark else "light"
+# Define color variables based on selected theme
+if "Relaxed" in theme_choice:
+    app_bg = "#1c1917"          # Warm dark charcoal/brown
+    secondary_bg = "#292524"
+    text_color = "#f59e0b"      # Soft amber glow
+    card_bg = "#26211e"
+    border_color = "#44403c"
+elif "Cool" in theme_choice:
+    app_bg = "#0f172a"          # Deep slate blue
+    secondary_bg = "#1e293b"
+    text_color = "#38bdf8"      # Cool cyan/blue
+    card_bg = "#1e293b"
+    border_color = "#334155"
+else: # Standard Dark Mode
+    app_bg = "#0e1117"
+    secondary_bg = "#262730"
+    text_color = "#fafafa"
+    card_bg = "#1e1e2f"
+    border_color = "#3f3f5f"
 
-if new_mode != st.session_state.theme_mode:
-    st.session_state.theme_mode = new_mode
-    if new_mode == "dark":
-        st._config.set_option("theme.base", "dark")
-        st._config.set_option("theme.backgroundColor", "#0e1117")
-        st._config.set_option("theme.secondaryBackgroundColor", "#262730")
-        st._config.set_option("theme.textColor", "#fafafa")
-    else:
-        st._config.set_option("theme.base", "light")
-        st._config.set_option("theme.backgroundColor", "#ffffff")
-        st._config.set_option("theme.secondaryBackgroundColor", "#f0f2f6")
-        st._config.set_option("theme.textColor", "#31333f")
-    st.rerun()
+# Inject Custom CSS to apply the theme globally
+st.markdown(f"""
+<style>
+    /* Main App Background */
+    .stApp {{
+        background-color: {app_bg} !important;
+    }}
+    
+    /* Sidebar Background */
+    [data-testid="stSidebar"] {{
+        background-color: {secondary_bg} !important;
+    }}
+    
+    /* Global Text Color Adjustment */
+    p, span, label, .stMarkdown {{
+        color: {text_color} !important;
+    }}
+
+    /* Custom Dashboard Card Container */
+    .cyber-card {{
+        background-color: {card_bg};
+        border: 1px solid {border_color};
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+    }}
+    
+    /* Metric Card Polish */
+    [data-testid="stMetric"] {{
+        background-color: {card_bg};
+        border: 1px solid {border_color};
+        padding: 10px 15px;
+        border-radius: 8px;
+    }}
+</style>
+""", unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
 
