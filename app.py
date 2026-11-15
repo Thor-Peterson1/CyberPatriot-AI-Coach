@@ -119,6 +119,7 @@ if "Relaxed" in theme_choice:
     accent_color = "#f59e0b"    # Warm amber/gold
     card_bg = "#241e19"
     widget_bg = "#2d2620"
+    border_color = "#f59e0b55"
 elif "Cool" in theme_choice:
     app_bg = "#0b132b"          # Deep slate navy background
     sidebar_bg = "#111d3a"      # Navy sidebar
@@ -126,15 +127,17 @@ elif "Cool" in theme_choice:
     accent_color = "#10b981"    # Emerald/mint green
     card_bg = "#132042"
     widget_bg = "#1a2c56"
+    border_color = "#10b98155"
 else:  # Standard Dark Mode (Clean neutral dark)
     app_bg = "#0e1117"
     sidebar_bg = "#161922"
     body_text = "#fafafa"
-    accent_color = "#38bdf8"    # Clean sky blue accent
+    accent_color = "#38bdf8"    # Clean accent
     card_bg = "#1e1e2f"
     widget_bg = "#262938"
+    border_color = "#3f3f5f"
 
-# Inject Clean Two-Tone CSS
+# Inject Clean Theme CSS (Restores native buttons & fixes dropdown outlines)
 st.markdown(f"""
 <style>
     /* Main App Background */
@@ -142,10 +145,10 @@ st.markdown(f"""
         background-color: {app_bg} !important;
     }}
     
-    /* Sidebar Background & Accent Border */
+    /* Sidebar Background & Border */
     [data-testid="stSidebar"] {{
         background-color: {sidebar_bg} !important;
-        border-right: 1px solid {accent_color}33;
+        border-right: 1px solid {border_color};
     }}
     
     /* Readable Body Text */
@@ -158,31 +161,25 @@ st.markdown(f"""
         color: {accent_color} !important;
     }}
 
-    /* Buttons Styling */
-    .stButton > button, .stDownloadButton > button {{
-        background-color: {card_bg} !important;
-        color: {accent_color} !important;
-        border: 1px solid {accent_color} !important;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }}
-
-    .stButton > button:hover, .stDownloadButton > button:hover {{
-        background-color: {accent_color} !important;
-        color: {app_bg} !important;
-    }}
-
-    /* Dropdowns & Selectbox Fix (Prevents unwanted blue boxes) */
-    div[data-baseweb="select"] > div {{
+    /* Dropdowns, Selectboxes & Input Outlines (Fixes remaining blue borders) */
+    div[data-baseweb="select"] > div, 
+    div[data-baseweb="base-input"] > input,
+    .stTextInput input, .stTextArea textarea {{
         background-color: {widget_bg} !important;
-        border-color: {accent_color}66 !important;
+        border-color: {border_color} !important;
+        color: {body_text} !important;
+    }}
+
+    /* Fix dropdown option list backgrounds when opened */
+    div[data-baseweb="popover"], div[data-baseweb="menu"] {{
+        background-color: {widget_bg} !important;
         color: {body_text} !important;
     }}
 
     /* Custom Dashboard Card Container */
     .cyber-card {{
         background-color: {card_bg};
-        border: 1px solid {accent_color}66;
+        border: 1px solid {border_color};
         padding: 16px;
         border-radius: 10px;
         margin-bottom: 12px;
@@ -191,22 +188,12 @@ st.markdown(f"""
     /* Metric Card Polish */
     [data-testid="stMetric"] {{
         background-color: {card_bg};
-        border: 1px solid {accent_color}66;
+        border: 1px solid {border_color};
         padding: 10px 15px;
         border-radius: 8px;
     }}
 </style>
 """, unsafe_allow_html=True)
-
-st.sidebar.markdown("---")
-
-# Target Platform Selection
-system_choice = st.sidebar.selectbox(
-    "Choose target environment:",
-    ["General / Mixed", "Windows Server / Desktop", "Linux (Ubuntu/Debian)", "Cisco Packet Tracer"],
-    index=0,
-    key="target_env_selectbox"
-)
 
 st.sidebar.markdown("---")
 
