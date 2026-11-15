@@ -95,223 +95,132 @@ if st.session_state.current_session_id not in st.session_state.sessions:
 # Fetch pointers for active session
 active_session = st.session_state.sessions[st.session_state.current_session_id]
 
-# HELPER: Define tracking logic BEFORE any button runs it
-def track_usage(text_input):
-    words = len(str(text_input).split())
-    st.session_state.total_words_processed += words
-
+# 5. SIDEBAR: Dashboard Configuration & Navigation
 st.sidebar.title("🛡️ CP-OPS Dashboard")
 st.sidebar.markdown("---")
 
-# Target Platform Selection (Always visible at top)
+# Target Platform Selection
 system_choice = st.sidebar.selectbox(
     "Choose target environment:",
     ["General / Mixed", "Windows Server / Desktop", "Linux (Ubuntu/Debian)", "Cisco Packet Tracer"],
-    index=0
+    index=0,
+    key="target_env_selectbox"
 )
+
+st.sidebar.markdown("---")
 
 # EXPANDER 1: Study & Training Tools
 with st.sidebar.expander("🛠️ Study & Training Tools", expanded=True):
-    if st.sidebar.button("📋 Generate Security Checklist", key="generate_security_checklist_btn", use_container_width=True):
-        # [Your checklist code here]
-        pass
+    if st.button("📋 Generate Security Checklist", key="sidebar_btn_gen_checklist", use_container_width=True):
+        checklist_prompt = (
+            f"Generate a focused, high-priority CyberPatriot hardening checklist for {system_choice}. "
+            "Group items under 3-4 short category headers formatted as '### Category Name'. "
+            "Format every actionable task strictly starting with '- [ ] ' followed by a concise command or setting (under 15 words). "
+            "Do not include introductory or concluding paragraphs."
+        )
+        active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
+        track_usage(checklist_prompt)
         
-    if st.sidebar.button("🚀 Generate Quick Quiz", key="generate_quick_quiz_sidebar_btn", use_container_width=True):
-        # [Your quiz code here]
-        pass
+        with st.spinner(f"Compiling {system_choice} hardening checklist..."):
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "system", "content": "You are an automated CyberPatriot scoring engine. Output only categorized markdown checklists."},
+                    {"role": "user", "content": checklist_prompt}
+                ],
+                stream=False
+            )
+            output_text = completion.choices[0].message.content
+            track_usage(output_text)
+            
+            structured_checklist = {}
+            current_category = "General Hardening"
+            
+            for line in output_text.split("\n"):
+                clean_line = line.strip()
+                if clean_line.startswith("### "):
+                    current_category = clean_line.replace("### ", "").strip()
+                    if current_category not in structured_checklist:
+                        structured_checklist[current_category] = {}
+                elif clean_line.startswith("- [ ]") or clean_line.startswith("- [x]"):
+                    task_text = clean_line.replace("- [ ]", "").replace("- [x]", "").strip()
+                    if task_text:
+                        if current_category not in structured_checklist:
+                            structured_checklist[current_category] = {}
+                        structured_checklist[current_category][task_text] = False
+            
+            active_session["checklist"] = structured_checklist
+            active_session["checklist_platform"] = system_choice
+        st.rerun()
+
+    if st.button("🚀 Generate Quick Quiz", key="sidebar_btn_gen_quiz", use_container_width=True):
+        current_diff = active_session.get("quiz_difficulty", "Intermediate")
+        last_score = active_session.get("last_score")
         
-    if st.sidebar.button("🔓 Reveal Quiz Answers", key="reveal_quiz_answers_sidebar_btn", use_container_width=True):
-        # [Your reveal code here]
-        pass
+        if last_score is not None:
+            if last_score == 4:
+                current_diff = "Advanced / Hardened Expert"
+            elif last_score <= 2:
+                current_diff = "Beginner / Foundational"
+            else:
+                current_diff = "Intermediate"
+        
+        active_session["quiz_difficulty"] = current_diff
+        quiz_prompt = (
+            f"Generate a short quiz tracking core security metrics on {system_choice} "
+            f"at a **{current_diff}** difficulty level. "
+            "Generate exactly 3 multiple choice questions (with options A, B, C, D) "
+            "and 1 free response question. Number them clearly (Question 1 to 4)."
+        )
+        quiz_payload = [
+            {"role": "system", "content": QUIZ_SYSTEM_PROMPT}, 
+            {"role": "user", "content": quiz_prompt}
+        ]
+        active_session["logs"].append(f"📝 Generated {current_diff} Quiz")
+        track_usage(quiz_prompt)
+        
+        with st.spinner(f"Generating {current_diff} quiz..."):
+            time.sleep(0.5)
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=quiz_payload,
+                stream=False
+            )
+            output_text = completion.choices[0].message.content
+            track_usage(output_text)
+            
+            active_session["messages"].append({"role": "assistant", "content": output_text})
+            active_session["quiz_active"] = True
+        st.rerun()
+
+    if st.button("🔓 Reveal Quiz Answers", key="sidebar_btn_reveal_answers", use_container_width=True):
+        reveal_trigger = "Explain the step-by-step corrections for this exercise and break down the solution mechanics and command examples for each question to help me study."
+        active_session["messages"].append({"role": "user", "content": reveal_trigger})
+        active_session["logs"].append("🔓 Revealed Quiz Answers")
+        track_usage(reveal_trigger)
+        
+        with st.spinner("Retrieving quiz answer key..."):
+            time.sleep(0.5)
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=active_session["messages"],
+                stream=False
+            )
+            output_text = completion.choices[0].message.content
+            track_usage(output_text)
+            active_session["messages"].append({"role": "assistant", "content": output_text})
+        st.rerun()
 
 # EXPANDER 2: Quick-Copy Command Toolbox
 with st.sidebar.expander("⚡ Quick-Copy Toolbox", expanded=False):
     os_tool_tab = st.selectbox(
         "Select OS Commands:", 
-        ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"]
-    )
-    if os_tool_tab == "Linux (Ubuntu/Debian)":
-        st.code("# Your Linux commands here...", language="bash")
-
-# EXPANDER 3: Session Management & Export
-with st.sidebar.expander("💬 Session & Data Export", expanded=False):
-    if st.button("➕ Start New Chat Session", use_container_width=True):
-        # [Session creation logic]
-        pass
-    if st.button("🗑️ Clear Current Logs", use_container_width=True):
-        # [Clear logs logic]
-        pass
-    # Download study notes button here...
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 🛠️ Study Tools")
-
-# TOOL 1: Generate Security Checklist
-if st.sidebar.button("📋 Generate Security Checklist", use_container_width=True):
-    checklist_prompt = (
-        f"Generate a focused, high-priority CyberPatriot hardening checklist for {system_choice}. "
-        "Group items under 3-4 short category headers formatted as '### Category Name'. "
-        "Format every actionable task strictly starting with '- [ ] ' followed by a concise command or setting (under 15 words). "
-        "Do not include introductory or concluding paragraphs."
-    )
-    
-    active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
-    track_usage(checklist_prompt)
-    
-    with st.spinner(f"Compiling {system_choice} hardening checklist..."):
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": "You are an automated CyberPatriot scoring engine. Output only categorized markdown checklists."},
-                {"role": "user", "content": checklist_prompt}
-            ],
-            stream=False
-        )
-        output_text = completion.choices[0].message.content
-        track_usage(output_text)
-        
-        # Parse categories and tasks into a structured dictionary (replaces old checklist cleanly)
-        structured_checklist = {}
-        current_category = "General Hardening"
-        
-        for line in output_text.split("\n"):
-            clean_line = line.strip()
-            if clean_line.startswith("### "):
-                current_category = clean_line.replace("### ", "").strip()
-                if current_category not in structured_checklist:
-                    structured_checklist[current_category] = {}
-            elif clean_line.startswith("- [ ]") or clean_line.startswith("- [x]"):
-                task_text = clean_line.replace("- [ ]", "").replace("- [x]", "").strip()
-                if task_text:
-                    if current_category not in structured_checklist:
-                        structured_checklist[current_category] = {}
-                    structured_checklist[current_category][task_text] = False
-        
-        active_session["checklist"] = structured_checklist
-        active_session["checklist_platform"] = system_choice
-    st.rerun()
-
-# TOOL 2: Generate Short Quiz (With Dynamic Difficulty Scaling)
-if st.sidebar.button("🚀 Generate Quick Quiz", use_container_width=True):
-    # Determine difficulty adjustment based on previous score
-    current_diff = active_session.get("quiz_difficulty", "Intermediate")
-    last_score = active_session.get("last_score")
-    
-    if last_score is not None:
-        if last_score == 4:
-            current_diff = "Advanced / Hardened Expert"
-        elif last_score <= 2:
-            current_diff = "Beginner / Foundational"
-        else:
-            current_diff = "Intermediate"
-    
-    active_session["quiz_difficulty"] = current_diff
-
-    quiz_prompt = (
-        f"Generate a short quiz tracking core security metrics on {system_choice} "
-        f"at a **{current_diff}** difficulty level. "
-        "Generate exactly 3 multiple choice questions (with options A, B, C, D) "
-        "and 1 free response question. Number them clearly (Question 1 to 4)."
+        ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"],
+        key="quick_copy_os_selectbox"
     )
 
-    quiz_payload = [
-        {"role": "system", "content": QUIZ_SYSTEM_PROMPT}, 
-        {"role": "user", "content": quiz_prompt}
-    ]
-    
-    active_session["logs"].append(f"📝 Generated {current_diff} Quiz")
-    track_usage(quiz_prompt)
-    
-    with st.spinner(f"Generating {current_diff} quiz..."):
-        time.sleep(0.5)
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=quiz_payload,
-            stream=False
-        )
-        output_text = completion.choices[0].message.content
-        track_usage(output_text)
-        
-        active_session["messages"].append({"role": "assistant", "content": output_text})
-        active_session["quiz_active"] = True
-    st.rerun()
-
-# TOOL 3: Reveal Quiz Answers Shortcut
-if st.sidebar.button("🔓 Reveal Quiz Answers", use_container_width=True):
-    reveal_trigger = "Explain the step-by-step corrections for this exercise and break down the solution mechanics and command examples for each question to help me study."
-    active_session["messages"].append({"role": "user", "content": reveal_trigger})
-    active_session["logs"].append("🔓 Revealed Quiz Answers")
-    track_usage(reveal_trigger)
-    
-    with st.spinner("Retrieving quiz answer key..."):
-        time.sleep(0.5)
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=active_session["messages"],
-            stream=False
-        )
-        output_text = completion.choices[0].message.content
-        track_usage(output_text)
-        active_session["messages"].append({"role": "assistant", "content": output_text})
-    st.rerun()
-
-# TOOL 4: Competition Round Reviewer
-if st.sidebar.button("📊 Review Last Competition Round", use_container_width=True):
-    review_trigger = f"Provide a comprehensive technical audit reviewing typical core scoring components found specifically in CyberPatriot Training Rounds and Round 1 for {system_choice}. Breakdown specific point-earning actions and detail the exact remediation verification commands."
-    active_session["messages"].append({"role": "user", "content": review_trigger})
-    active_session["logs"].append("📊 Requested Round Review")
-    track_usage(review_trigger)
-    
-    with st.spinner("Analyzing competitive metrics..."):
-        time.sleep(0.5)
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=active_session["messages"],
-            stream=False
-        )
-        output_text = completion.choices[0].message.content
-        track_usage(output_text)
-        active_session["messages"].append({"role": "assistant", "content": output_text})
-    st.rerun()
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 💬 Session Manager")
-
-if st.sidebar.button("➕ Start New Chat Session", use_container_width=True):
-    st.session_state.session_counter += 1
-    new_id = f"Session {st.session_state.session_counter}"
-    st.session_state.sessions[new_id] = {
-        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
-        "logs": []
-    }
-    st.session_state.current_session_id = new_id
-    st.rerun()
-
-if st.sidebar.button("🗑️ Clear Current Logs", use_container_width=True):
-    st.session_state.sessions[st.session_state.current_session_id] = {
-        "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
-        "logs": []
-    }
-    st.rerun()
-
-st.sidebar.markdown("#### 🕒 Session Logs History")
-for sid in list(st.session_state.sessions.keys()):
-    button_label = f"📁 {sid} (Active)" if sid == st.session_state.current_session_id else f"📄 {sid}"
-    if st.sidebar.button(button_label, key=f"nav_{sid}", use_container_width=True):
-        st.session_state.current_session_id = sid
-        st.rerun()
-
-# TOOL: Quick-Copy Command Toolbox
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ⚡ Quick-Copy Toolbox")
-
-os_tool_tab = st.sidebar.selectbox(
-    "Select OS Commands:", 
-    ["Windows PowerShell", "Linux (Ubuntu/Debian)", "Cisco IOS"]
-)
-
-if os_tool_tab == "Windows PowerShell":
-    st.sidebar.code("""# Audit accounts & passwords
+    if os_tool_tab == "Windows PowerShell":
+        st.code("""# Audit accounts & passwords
 Get-LocalUser
 Get-CimInstance Win32_UserAccount
 
@@ -321,19 +230,30 @@ Disable-LocalUser -Name "Guest"
 # Enforce password complexity via SecPol
 secedit /export /cfg C:\\secpol.cfg""", language="powershell")
 
-elif os_tool_tab == "Linux (Ubuntu/Debian)":
-    st.sidebar.code("""# Check active listening ports
+    elif os_tool_tab == "Linux (Ubuntu/Debian)":
+        st.code("""# 1. Audit Users & Sudoers
+cut -d: -f1,3 /etc/passwd | grep -E ':[0-9]{4}$'
+getent group sudo
+
+# 2. Firewall & Network Hardening
+sudo ufw enable
+sudo ufw default deny incoming
 sudo ss -tulpn
 
-# Update package manager & secure ssh
-sudo apt update && sudo apt upgrade
-sudo nano /etc/ssh/sshd_config  # PermitRootLogin no
+# 3. SSH & Kernel Security
+sudo sed -i 's/#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+sudo sysctl -w net.ipv4.tcp_syncookies=1
 
-# Find unauthorized media files
-sudo find / -name '*.mp3' -o -name '*.avi' -o -name '*.mov'""", language="bash")
+# 4. Password Policy & Updates
+sudo apt update && sudo apt upgrade -y
+sudo nano /etc/login.defs  # PASS_MAX_DAYS 90
 
-elif os_tool_tab == "Cisco IOS":
-    st.sidebar.code("""# Enable config mode & set password encryption
+# 5. Hunt Prohibited Media
+sudo find /home -type f \\( -name "*.mp3" -o -name "*.mp4" \\)""", language="bash")
+
+    elif os_tool_tab == "Cisco IOS":
+        st.code("""# Enable config mode & set password encryption
 en
 conf t
 service password-encryption
@@ -344,33 +264,60 @@ password SECURE_PASS
 login
 exit""", language="text")
 
-# TOOL 5: Export Transcript Feature (MOVED ABOVE ANALYTICS)
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 💾 Export Data")
+# EXPANDER 3: Session Management & Export
+with st.sidebar.expander("💬 Session & Data Export", expanded=False):
+    if st.button("➕ Start New Chat Session", key="sidebar_btn_new_session", use_container_width=True):
+        st.session_state.session_counter += 1
+        new_id = f"Session {st.session_state.session_counter}"
+        st.session_state.sessions[new_id] = {
+            "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
+            "logs": [],
+            "last_score": None,
+            "quiz_difficulty": "Intermediate"
+        }
+        st.session_state.current_session_id = new_id
+        st.rerun()
 
-full_transcript = ""
-for msg in active_session["messages"]:
-    if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
-        speaker = "STUDENT" if msg["role"] == "user" else "MENTOR"
-        full_transcript += f"[{speaker}]:\n{msg['content']}\n\n{'='*40}\n\n"
+    if st.button("🗑️ Clear Current Logs", key="sidebar_btn_clear_logs", use_container_width=True):
+        st.session_state.sessions[st.session_state.current_session_id] = {
+            "messages": [{"role": "system", "content": GENERAL_SYSTEM_PROMPT}],
+            "logs": [],
+            "last_score": None,
+            "quiz_difficulty": "Intermediate"
+        }
+        st.rerun()
 
-if full_transcript:
-    st.sidebar.download_button(
-        label="📥 Download Study Notes (.txt)",
-        data=full_transcript,
-        file_name=f"cyberpatriot_study_notes_{st.session_state.current_session_id.lower().replace(' ', '_')}.txt",
-        mime="text/plain",
-        use_container_width=True
-    )
-else:
-    st.sidebar.caption("Chat with the mentor or generate a checklist to unlock download export options.")
+    full_transcript = ""
+    for msg in active_session["messages"]:
+        if msg["role"] != "system" and msg["content"] != "Give me a brand new, random CyberPatriot practice quiz challenge right now!":
+            speaker = "STUDENT" if msg["role"] == "user" else "MENTOR"
+            full_transcript += f"[{speaker}]:\n{msg['content']}\n\n{'='*40}\n\n"
 
-# LIVE ANALYTICS MONITOR (Upgraded with Token Estimator)
+    if full_transcript:
+        st.download_button(
+            label="📥 Download Study Notes (.txt)",
+            data=full_transcript,
+            file_name=f"cyberpatriot_study_notes_{st.session_state.current_session_id.lower().replace(' ', '_')}.txt",
+            mime="text/plain",
+            use_container_width=True,
+            key="sidebar_download_notes_btn"
+        )
+    else:
+        st.caption("Chat with the mentor or generate a checklist to unlock download export options.")
+
+st.sidebar.markdown("#### 🕒 Session History")
+for sid in list(st.session_state.sessions.keys()):
+    button_label = f"📁 {sid} (Active)" if sid == st.session_state.current_session_id else f"📄 {sid}"
+    if st.sidebar.button(button_label, key=f"nav_session_{sid}", use_container_width=True):
+        st.session_state.current_session_id = sid
+        if "persisted_image" in st.session_state:
+            del st.session_state["persisted_image"]
+        st.rerun()
+
+# LIVE ANALYTICS MONITOR (Bottom of Sidebar)
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Live Analytics Monitor")
 st.sidebar.metric(label="Data Volume Processed", value=f"{st.session_state.total_words_processed} words")
-
-# Approximate token calculation (~1.3 tokens per word)
 estimated_tokens = int(st.session_state.total_words_processed * 1.3)
 st.sidebar.metric(label="Estimated API Tokens", value=f"{estimated_tokens:,} tokens")
 st.sidebar.caption("Infrastructure Billing Estimate: **$0.00 (Free Tier)**")
