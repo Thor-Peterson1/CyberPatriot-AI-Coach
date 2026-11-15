@@ -213,6 +213,29 @@ with st.sidebar.expander("🛠️ Study & Training Tools", expanded=True):
             active_session["messages"].append({"role": "assistant", "content": output_text})
         st.rerun()
 
+    if st.button("🕵️ Forensics Question Helper", key="sidebar_btn_forensics_helper", use_container_width=True):
+        forensics_prompt = (
+            f"I need help solving a CyberPatriot Forensics Question on {system_choice}. "
+            "Ask me to paste the exact forensics question text from my Desktop. "
+            "Once I paste it, guide me step-by-step on where to look (specific log paths, registry hives, "
+            "file metadata, or decoding commands) without giving away a fake answer."
+        )
+        active_session["messages"].append({"role": "user", "content": forensics_prompt})
+        active_session["logs"].append("🕵️ Activated Forensics Helper")
+        track_usage(forensics_prompt)
+        
+        with st.spinner("Initializing Forensics Investigation Mode..."):
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=active_session["messages"],
+                stream=False
+            )
+            output_text = completion.choices[0].message.content
+            track_usage(output_text)
+            active_session["messages"].append({"role": "assistant", "content": output_text})
+            save_session_to_db(st.session_state.current_session_id, active_session)
+        st.rerun()
+
 # EXPANDER 2: Quick-Copy Command Toolbox
 with st.sidebar.expander("⚡ Quick-Copy Toolbox", expanded=False):
     os_tool_tab = st.selectbox(
