@@ -112,7 +112,7 @@ system_choice = st.sidebar.selectbox(
 
 # EXPANDER 1: Study & Training Tools
 with st.sidebar.expander("🛠️ Study & Training Tools", expanded=True):
-    if st.button("📋 Generate Security Checklist", use_container_width=True):
+    if st.sidebar.button("📋 Generate Security Checklist", key="generate_security_checklist_btn", use_container_width=True):
         # [Your checklist code here]
         pass
         
