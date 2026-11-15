@@ -116,7 +116,7 @@ with st.sidebar.expander("🛠️ Study & Training Tools", expanded=True):
         # [Your checklist code here]
         pass
         
-    if st.button("🚀 Generate Quick Quiz", use_container_width=True):
+    if st.sidebar.button("🚀 Generate Quick Quiz", key="generate_quick_quiz_sidebar_btn", use_container_width=True):
         # [Your quiz code here]
         pass
         
