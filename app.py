@@ -105,27 +105,17 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
 is_dark_mode = st.sidebar.toggle("🌙 Dark Mode", value=True, key="dark_mode_toggle_switch")
 
-# Define dynamic color variables based on the toggle switch
+# Define dynamic background colors for custom cards based on the toggle switch
 if is_dark_mode:
-    bg_color = "#0e1117"
-    text_color = "#fafafa"
     card_bg = "#1e1e2f"
     border_color = "#3f3f5f"
 else:
-    bg_color = "#ffffff"
-    text_color = "#31333F"
     card_bg = "#f8f9fa"
     border_color = "#d1d5db"
 
-# Inject Custom Dynamic CSS
+# Inject Safe Custom CSS (Avoids breaking Streamlit's global text elements)
 st.markdown(f"""
 <style>
-    /* Main App Background & Text */
-    .stApp {{
-        background-color: {bg_color};
-        color: {text_color};
-    }}
-    
     /* Custom Dashboard Card Container */
     .cyber-card {{
         background-color: {card_bg};
