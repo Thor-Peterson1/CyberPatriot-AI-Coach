@@ -70,32 +70,47 @@ st.sidebar.markdown("### 🛠️ Study Tools")
 
 # TOOL 1: Generate Security Checklist
 if st.sidebar.button("📋 Generate Security Checklist", use_container_width=True):
-    checklist_trigger = f"Act as an automated security scanner. Generate a short, highly technical, point-by-point security hardening checklist for {system_choice}. Format each item starting strictly with '- [ ] ' so it can be parsed. Group them clearly."
-    active_session["messages"].append({"role": "user", "content": checklist_trigger})
-    active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
-    track_usage(checklist_trigger)
+    checklist_prompt = (
+        f"Generate a focused, high-priority CyberPatriot hardening checklist for {system_choice}. "
+        "Group items under 3-4 short category headers formatted as '### Category Name'. "
+        "Format every actionable task strictly starting with '- [ ] ' followed by a concise command or setting (under 15 words). "
+        "Do not include introductory or concluding paragraphs."
+    )
     
-    with st.spinner("Compiling security checklist..."):
-        time.sleep(0.5)
+    active_session["logs"].append(f"📋 Generated {system_choice} Checklist")
+    track_usage(checklist_prompt)
+    
+    with st.spinner(f"Compiling {system_choice} hardening checklist..."):
         completion = client.chat.completions.create(
             model="openai/gpt-oss-20b",
-            messages=active_session["messages"],
+            messages=[
+                {"role": "system", "content": "You are an automated CyberPatriot scoring engine. Output only categorized markdown checklists."},
+                {"role": "user", "content": checklist_prompt}
+            ],
             stream=False
         )
         output_text = completion.choices[0].message.content
         track_usage(output_text)
-        active_session["messages"].append({"role": "assistant", "content": output_text})
         
-        # Parse checklist items out of the response text and store them
-        checklist_items = []
+        # Parse categories and tasks into a structured dictionary (replaces old checklist cleanly)
+        structured_checklist = {}
+        current_category = "General Hardening"
+        
         for line in output_text.split("\n"):
-            if line.strip().startswith("- [ ]") or line.strip().startswith("- [x]"):
-                clean_item = line.replace("- [ ]", "").replace("- [x]", "").strip()
-                if clean_item:
-                    checklist_items.append(clean_item)
+            clean_line = line.strip()
+            if clean_line.startswith("### "):
+                current_category = clean_line.replace("### ", "").strip()
+                if current_category not in structured_checklist:
+                    structured_checklist[current_category] = {}
+            elif clean_line.startswith("- [ ]") or clean_line.startswith("- [x]"):
+                task_text = clean_line.replace("- [ ]", "").replace("- [x]", "").strip()
+                if task_text:
+                    if current_category not in structured_checklist:
+                        structured_checklist[current_category] = {}
+                    structured_checklist[current_category][task_text] = False
         
-        # Save into session state with unique keys
-        active_session["checklist"] = {item: False for item in checklist_items}
+        active_session["checklist"] = structured_checklist
+        active_session["checklist_platform"] = system_choice
     st.rerun()
 
 # TOOL 2: Generate Short Quiz
@@ -349,28 +364,42 @@ if "last_score" in active_session and active_session["last_score"] is not None:
 
 # INTERACTIVE CHECKLIST TRACKER WIDGET
 if "checklist" in active_session and active_session["checklist"]:
-    st.markdown("### 🎯 Live Hardening Checklist Tracker")
-    st.caption("Check off items as you complete them in your virtual machine lab to track your hardening progress!")
+    platform_label = active_session.get("checklist_platform", system_choice)
     
-    checklist_dict = active_session["checklist"]
-    total_tasks = len(checklist_dict)
+    header_col1, header_col2 = st.columns([4, 1])
+    with header_col1:
+        st.markdown(f"### 🎯 Live Hardening Checklist ({platform_label})")
+    with header_col2:
+        if st.button("🗑️ Clear Checklist", use_container_width=True):
+            del active_session["checklist"]
+            st.rerun()
+
+    st.caption("Check off items as you complete them in your VM lab.")
     
-    # Render checkboxes
+    checklist_data = active_session["checklist"]
+    total_tasks = 0
     completed_count = 0
-    for task, is_checked in checklist_dict.items():
-        # st.checkbox returns True if checked
-        status = st.checkbox(task, value=is_checked, key=f"check_{task}")
-        active_session["checklist"][task] = status
-        if status:
-            completed_count += 1
-            
-    # Progress Bar Calculation
+    
+    for cat_idx, (category, tasks) in enumerate(checklist_data.items()):
+        if tasks:
+            st.markdown(f"**{category}**")
+            for task_idx, (task, is_checked) in enumerate(tasks.items()):
+                total_tasks += 1
+                unique_key = f"chk_{st.session_state.current_session_id}_{cat_idx}_{task_idx}"
+                status = st.checkbox(task, value=is_checked, key=unique_key)
+                active_session["checklist"][category][task] = status
+                if status:
+                    completed_count += 1
+
     progress_percentage = completed_count / total_tasks if total_tasks > 0 else 0
-    st.progress(progress_percentage, text=f"Hardening Progress: {completed_count}/{total_tasks} Tasks Completed ({int(progress_percentage * 100)}%)")
+    st.progress(
+        progress_percentage,
+        text=f"Hardening Progress: {completed_count}/{total_tasks} Tasks Completed ({int(progress_percentage * 100)}%)"
+    )
     
     if completed_count == total_tasks and total_tasks > 0:
         st.balloons()
-        st.success("🎉 Incredible job! All hardening tasks for this checklist are complete!")
+        st.success("🎉 All hardening tasks for this checklist are complete!")
     
     st.markdown("---")
 
