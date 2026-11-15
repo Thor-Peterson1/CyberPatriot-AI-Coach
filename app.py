@@ -121,13 +121,6 @@ system_choice = st.sidebar.selectbox(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🎨 Theme & Appearance")
 
-theme_choice = st.sidebar.selectbox(
-    "Select Color Theme:",
-    ["Dark Mode (Default)", "Relaxed Amber (Warm)", "Cool Blue/Green (Terminal)"],
-    index=0,
-    key="theme_mode_selector"
-)
-
 # Define clean color palettes per theme
 if "Relaxed" in theme_choice:
     app_bg = "#191512"          # Deep warm espresso background
