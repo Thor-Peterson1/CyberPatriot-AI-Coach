@@ -498,6 +498,24 @@ if len(active_session["messages"]) <= 1:
         if st.button("🚫 Show Common Forbidden Software", use_container_width=True):
             st.session_state["shortcut_input"] = "List the most common forbidden software and media file extensions that cause penalties in competition images."
 
+# README SCENARIO CONTEXT PARSER
+with st.expander("📄 Paste Competition README (Prevents Accidental Point Penalties)", expanded=False):
+    readme_text = st.text_area(
+        "Paste Authorized Users, Admins, and Critical Services from the VM README:",
+        value=active_session.get("readme_context", ""),
+        height=120,
+        placeholder="e.g., Authorized Admins: jdoe, msmith | Critical Services: SSH, Apache2 | Do NOT remove..."
+    )
+    if st.button("🔒 Lock README Rules into Session", key="lock_readme_btn"):
+        active_session["readme_context"] = readme_text
+        # Update the system prompt so the AI respects the README rules on every reply
+        active_session["messages"][0]["content"] = (
+            GENERAL_SYSTEM_PROMPT + 
+            f"\n\nCRITICAL COMPETITION README RULES (NEVER VIOLATE THESE):\n{readme_text}"
+        )
+        save_session_to_db(st.session_state.current_session_id, active_session)
+        st.success("✅ README rules locked! The AI will now protect your authorized users and critical services.")
+
 # PERSISTENT UPLOADER: Save file to session state so it survives re-runs
 uploaded_file = st.file_uploader("🖼️ Upload system error screenshots or policy diagnostics pictures for analysis:", type=["png", "jpg", "jpeg"], key="image_uploader_widget")
 
